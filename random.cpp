@@ -20,7 +20,7 @@ using namespace std;
 1   INEQUALITY OPERATOR
 2   OPERATOR
 3   EXPRESSION
-4   INTEGER
+4   INTEGER (PARSE)/RATIONAL EXPRESSIBLE (REDUCTION)
 5   BASE TRIANGLE TERM
 6   LEFT PARENTHESIS
 7   RIGHT PARENTHESIS
@@ -87,7 +87,6 @@ deque<int> dq; //deque
 vector<int> ty, dt; //type, data
 vector<pair<int, int> > ds; //descendants
 map<char, int> om, ti; //operator-to-integer, term-to-integer map
-vector<bool> ir; //is rational
 vector<rat> rv; //rational value
 vector<vector<pair<int, rat> > > ip; //inverted powers
 
@@ -139,13 +138,14 @@ inline bool cnd(int p) { //condense deque terms with precedence at least i | per
 
 void rd0(int i) { //simplification of rational expressions
     if (ds[i].first > -1 && ds[i].second > -1) {rd0(ds[i].first); rd0(ds[i].second);}
-    if (ty[i] == 4) {ir[i] = 1; rv[i] = dt[i]; printf("!!!%d: %d %d | %d %d\n", i, ty[i], dt[i], rv[i].p, rv[i].q); return;}
-    if (ty[i] == 3 && ir[ds[i].first] && ir[ds[i].second]) {
-        if (dt[i] == 0) {ir[i] = 1; rv[i] = rv[ds[i].first] + rv[ds[i].second];}
-        if (dt[i] == 1) {ir[i] = 1; rv[i] = rv[ds[i].first] - rv[ds[i].second];}
-        if (dt[i] == 2) {ir[i] = 1; rv[i] = rv[ds[i].first] * rv[ds[i].second];}
-        if (dt[i] == 3) {ir[i] = 1; rv[i] = rv[ds[i].first] / rv[ds[i].second];}
-        if (dt[i] == 4) {if (rv[ds[i].second].q != 1) syr(); ir[i] = 1; rv[i] = pw(rv[ds[i].first], rv[ds[i].second].p);}
+    if (ty[i] == 4) {rv[i] = dt[i]; return;}
+    if (ty[i] == 3 && ty[ds[i].first] == 4 && ty[ds[i].second] == 4) {
+        if (dt[i] == 0) rv[i] = rv[ds[i].first] + rv[ds[i].second];
+        if (dt[i] == 1) rv[i] = rv[ds[i].first] - rv[ds[i].second];
+        if (dt[i] == 2) rv[i] = rv[ds[i].first] * rv[ds[i].second];
+        if (dt[i] == 3) rv[i] = rv[ds[i].first] / rv[ds[i].second];
+        if (dt[i] == 4 && rv[ds[i].second].q == 1) rv[i] = pw(rv[ds[i].first], rv[ds[i].second].p);
+        ty[i] = (dt[i] < 4 || rv[ds[i].second].q == 1) ? 4 : 3;
     }
 }
 
@@ -261,13 +261,9 @@ int main() {
     for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d\n", i, ty[i], dt[i], ds[i].first, ds[i].second);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
     printf("\n");
-    ir.assign(ty.size(), 0);
     rv.assign(ty.size(), rat(0, 1));
-    printf("___%d\n", ir.size());
-    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d IR %d\n", i, ty[i], dt[i], ds[i].first, ds[i].second, (int) ir[i]);
-    printf("!\n");
     rd0(dq[0]);
-    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d IR %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, (int) ir[i], rv[i].p, rv[i].q);
+    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
     rd1(dq[0]);
     return 0;
