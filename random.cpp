@@ -37,13 +37,6 @@ using namespace std;
 7   r - radius of circumcircle
 */
 
-//((prime factorize))
-/*  REDUCTION STEP -
-0   ARBITRARY EXPRESSION
-1   RATIONAL POWER
-2   RATIONAL/INTEGER
-*/
-
 
 
 /*
@@ -53,22 +46,65 @@ using namespace std;
 -3c
 */
 
+struct rat{ //rational
+    long long p, q;
+    long long gcd(long long a, long long b) {long long c; while (b) c = b, b = a % b, a = c; return a;}
+    void red() {long long g = gcd(abs(p), abs(q)) * (q < 0 ? -1 : 1); p /= g; q /= g;}
+    rat() {}
+    rat(long long a, long long b) {p = a; q = b; this->red();}
+    rat operator=(long long v) {p = v; q = 1; return *this;}
+    rat operator+(const rat &v) const {return rat(p * v.q + v.p * q, q * v.q);}
+    rat operator+(long long v) const {return rat(p + v * q, q);}
+    void operator+=(const rat &v) {*this = *this + v;}
+    void operator+=(long long v) {*this = *this + v;}
+    rat operator-(const rat &v) const {return rat(p * v.q - v.p * q, q * v.q);}
+    rat operator-(long long v) const {return rat(p - v * q, q);}
+    void operator-=(const rat &v) {*this = *this - v;}
+    void operator-=(long long v) {*this = *this - v;}
+    rat operator*(const rat &v) const {return rat(p * v.p, q * v.q);}
+    rat operator*(long long v) const {return rat(p * v, q);}
+    void operator*=(const rat &v) {*this = *this * v;}
+    void operator*=(long long v) {*this = *this * v;}
+    rat operator/(const rat &v) const {return rat(p * v.q, q * v.p);}
+    rat operator/(long long v) const {return rat(p, v * q);}
+    void operator/=(const rat &v) {*this = *this / v;}
+    void operator/=(long long v) {*this = *this / v;}
+    bool operator<(const rat &v) const {return (*this - v).p < 0;}
+    bool operator<(long long v) const {return (*this - v).p < 0;}
+    bool operator>(const rat &v) const {return (*this - v).p > 0;}
+    bool operator>(long long v) const {return (*this - v).p > 0;}
+    bool operator<=(const rat &v) const {return (*this - v).p <= 0;}
+    bool operator<=(long long v) const {return (*this - v).p <= 0;}
+    bool operator>=(const rat &v) const {return (*this - v).p >= 0;}
+    bool operator>=(long long v) const {return (*this - v).p >= 0;}
+    bool operator==(const rat &v) const {return !(*this - v).p;}
+    bool operator==(long long v) const {return !(*this - v).p;}
+    bool operator!=(const rat &v) const {return (*this - v).p;}
+    bool operator!=(long long v) const {return (*this - v).p;}
+};
+
 deque<int> dq; //deque
 vector<int> ty, dt; //type, data
 vector<pair<int, int> > ds; //descendants
 map<char, int> om, ti; //operator-to-integer, term-to-integer map
+vector<bool> ir; //is rational
+vector<rat> rv; //rational value
+vector<vector<pair<int, rat> > > ip; //inverted powers
 
 inline void syr() {cout << "SYNTAX ERROR " << endl;/* exit(0);*/}
 
-inline vector<pair<int, int> > prf(int x) { //prime factorization
+/*inline vector<pair<int, int> > prf(int x) { //prime factorization
     vector<pair<int, int> > v;
     if (x < 0) {v.push_back(make_pair(-1, 1)); x *= -1;}
     return v;
-}
+}*/
 
 inline string rf(string s, string a, string b) {for (int i = 0; (i = s.find(a, i)) < s.size(); i += b.size()) s.replace(i, a.size(), b); return s;}
 
-inline bool inr(bool z) { //interprets preceding items as integers or multiplication | performed before appending digits, terms or open parentheses
+inline long long pw(long long i, long long p) {return !p ? 1 : ((p == 1) ? i : (pw(i * i, p / 2) * (p % 2 ? i : 1)));}
+inline rat pw(rat i, long long p) {return rat(pw(i.p, p), pw(i.q, p));}
+
+inline bool inr(bool z) { //chooses interpretation of preceding items as integers or multiplication | performed before appending digits, terms or open parentheses
     if (dq.empty() || ty[dq.back()] < 3 || 5 < ty[dq.back()]) return 0;
     if (ty[dq.back()] == 4 && z) return 1;
     ty.push_back(2);
@@ -101,8 +137,24 @@ inline bool cnd(int p) { //condense deque terms with precedence at least i | per
     return !dq.empty() && 3 <= ty[dq.back()] && ty[dq.back()] <= 5;
 }
 
+void rd0(int i) { //simplification of rational expressions
+    if (ds[i].first > -1 && ds[i].second > -1) {rd0(ds[i].first); rd0(ds[i].second);}
+    if (ty[i] == 4) {ir[i] = 1; rv[i] = dt[i]; printf("!!!%d: %d %d | %d %d\n", i, ty[i], dt[i], rv[i].p, rv[i].q); return;}
+    if (ty[i] == 3 && ir[ds[i].first] && ir[ds[i].second]) {
+        if (dt[i] == 0) {ir[i] = 1; rv[i] = rv[ds[i].first] + rv[ds[i].second];}
+        if (dt[i] == 1) {ir[i] = 1; rv[i] = rv[ds[i].first] - rv[ds[i].second];}
+        if (dt[i] == 2) {ir[i] = 1; rv[i] = rv[ds[i].first] * rv[ds[i].second];}
+        if (dt[i] == 3) {ir[i] = 1; rv[i] = rv[ds[i].first] / rv[ds[i].second];}
+        if (dt[i] == 4) {if (rv[ds[i].second].q != 1) syr(); ir[i] = 1; rv[i] = pw(rv[ds[i].first], rv[ds[i].second].p);}
+    }
+}
+
+void rd1(int i) { //propagation/elimination of negative powers
+
+}
+
 /*  TODO
-    simplify integers/rationals/rational powers -> convert negative/?rational? powers
+    convert negative/?rational? powers
     output equation tree to singular
     ?implement user shorthand definitions
 */
@@ -115,7 +167,6 @@ int main() {
     for (i = 0; i < 8; ++i) ti[zq[i]] = i;
     string s;
     getline(cin, s);
-    //s = rf(s, " ", "");
     N = s.size();
     for (i = 0; i < N; ++i) {
         if (s[i] == '=') {
@@ -207,7 +258,17 @@ int main() {
     }
     cnd(0);
     if (dq.size() > 1) syr();
-    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d\n", i, ty[i], dt[i], ds[i]);
+    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d\n", i, ty[i], dt[i], ds[i].first, ds[i].second);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
+    printf("\n");
+    ir.assign(ty.size(), 0);
+    rv.assign(ty.size(), rat(0, 1));
+    printf("___%d\n", ir.size());
+    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d IR %d\n", i, ty[i], dt[i], ds[i].first, ds[i].second, (int) ir[i]);
+    printf("!\n");
+    rd0(dq[0]);
+    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d IR %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, (int) ir[i], rv[i].p, rv[i].q);
+    for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
+    rd1(dq[0]);
     return 0;
 }
