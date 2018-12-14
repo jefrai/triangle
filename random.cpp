@@ -150,13 +150,18 @@ void rd0(int i) { //simplification of rational expressions
 }
 
 void rd1(int i) { //propagation/elimination of negative powers
-
+    int dl = ds[i].first, dr = ds[i].second; //original left and right descendants
+    //TRUNCATE OBSOLETE LEFT IDENTITY MULTIPLICATION DESCENDANT
+    if (ty[i] != 4) {rd1(ds[i].first); rd1(ds[i].second);}
+    if (ty[i] == 3 && dt[i] == 4 && ty[ds[i].second] != 4) syr();
+    if (ty[i] == 3 && dt[i] == 4 && rv[ds[i].second] < 0) {ty[i] = 1; rv[i] = 1; ip[i].push_back(make_pair(ds[i].first, rv[ds[i].second]));}
 }
 
 /*  TODO
     convert negative/?rational? powers
     output equation tree to singular
     ?implement user shorthand definitions
+    ?decimal point input support
 */
 int main() {
     ios_base::sync_with_stdio(0);
@@ -265,6 +270,10 @@ int main() {
     rd0(dq[0]);
     for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
+    printf("\n");
+    ip.resize(ty.size());
     rd1(dq[0]);
+    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
+    for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
     return 0;
 }
