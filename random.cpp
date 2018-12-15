@@ -85,6 +85,7 @@ struct rat{ //rational
     bool operator==(long long v) const {return !(*this - v).p;}
     bool operator!=(const rat &v) const {return (*this - v).p;}
     bool operator!=(long long v) const {return (*this - v).p;}
+    string str() {return q != 1 ? (to_string(p) + "/" + to_string(q)) : to_string(p);}
 };
 
 deque<int> dq; //deque
@@ -92,17 +93,11 @@ vector<int> ty, dt, ip; //type, data, inverted powers
 vector<pair<int, int> > ds; //descendants
 map<char, int> om, ti; //operator-to-integer, term-to-integer map
 vector<rat> rv; //rational value
+priority_queue<pair<int, string> > uf; //used variables
+deque<string> pl; //polynomials
 
 inline void syr() {cout << "SYNTAX ERROR " << endl;/* exit(0);*/}
-
-/*inline vector<pair<int, int> > prf(int x) { //prime factorization
-    vector<pair<int, int> > v;
-    if (x < 0) {v.push_back(make_pair(-1, 1)); x *= -1;}
-    return v;
-}*/
-
 inline string rf(string s, string a, string b) {for (int i = 0; (i = s.find(a, i)) < s.size(); i += b.size()) s.replace(i, a.size(), b); return s;}
-
 inline long long pw(long long i, long long p) {return !p ? 1 : ((p == 1) ? i : (pw(i * i, p / 2) * (p % 2 ? i : 1)));}
 inline rat pw(rat i, long long p) {return rat(pw(i.p, p), pw(i.q, p));}
 inline int mp(int i, int j) {ty.push_back(3); dt.push_back(2); ds.push_back(make_pair(i, j)); ip.push_back(-1); rv.push_back(rat(0, 1)); return ty.size() - 1;}
@@ -154,7 +149,7 @@ void rd0(int i) { //simplification of rational expressions
 }
 
 void rd1(int i) { //propagation/elimination of negative powers
-    printf("?%d %d %d %d\n", i, ty[i], ds[i].first, ds[i].second);
+    //printf("?%d %d %d %d\n", i, ty[i], ds[i].first, ds[i].second);
     if (ty[i] == 4 || ty[i] == 5) return;
     rd1(ds[i].first);
     rd1(ds[i].second);
@@ -163,16 +158,12 @@ void rd1(int i) { //propagation/elimination of negative powers
         if (ip[dr] > -1) {ds[i].first = mp(dl, ip[dr]); ip[i] = ip[dr];}
         if (ip[dl] > -1) {ds[i].second = mp(ip[dl], dr); ip[i] = ip[dl];}
         if (ip[dl] > -1 && ip[dr] > -1) ip[i] = mp(ip[dl], ip[dr]);
-        //if (ty[ds[i].first] == 4 && rv[ds[i].first] == 0) (s ? ds[o].second : ds[o].first) = ds[i].second;
-        //if (ty[ds[i].second] == 4 && rv[ds[i].second] == 0) (s ? ds[o].second : ds[o].first) = ds[i].first;
     }
     if (dt[i] == 3) {swap(ds[i].second, ip[ds[i].second]); dt[i] = 2;}
     if (dt[i] == 2) {
         if (ip[dl] > -1) ip[i] = ip[dl];
         if (ip[dr] > -1) ip[i] = ip[dr];
         if (ip[dl] > -1 && ip[dr] > -1) ip[i] = mp(ip[dl], ip[dr]);
-        //if (ty[ds[i].first] == 4 && rv[ds[i].first] == 1) (s ? ds[o].second : ds[o].first) = ds[i].second;
-        //if (ty[ds[i].second] == 4 && rv[ds[i].second] == 1) (s ? ds[o].second : ds[o].first) = ds[i].first;
     }
     if (dt[i] == 4 && ty[ds[i].second] != 4) syr();
     if (dt[i] == 4) ip[i] = ip[ds[i].first];
@@ -192,7 +183,7 @@ void rd1(int i) { //propagation/elimination of negative powers
     }
 }
 
-void rd2(int i, int o, bool s) {
+void rd2(int i, int o, bool s) { //cleaning up of identity operations
     if (ty[i] == 4 || ty[i] == 5) return;
     rd2(ds[i].first, i, 0);
     rd2(ds[i].second, i, 1);
@@ -205,6 +196,69 @@ void rd2(int i, int o, bool s) {
     if (dt[i] == 4 && ty[dl] == 4 && (rv[dl] == 0 || rv[dl] == 1 || rv[dr] == 1)) {(s ? ds[o].second : ds[o].first) = dl; return;}
 }
 
+void cmp(int i) { //compile tree into polynomials
+    string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[8] = {"a", "b", "c", "A", "B", "C", "s", "r"};
+    if (ty[i] == 4 || ty[i] == 5) return;
+    cmp(ds[i].first);
+    cmp(ds[i].second);
+    int dl = ds[i].first, dr = ds[i].second;
+    string l, r;
+    l = (ty[dl] < 4 || 5 < ty[dl]) ? ("z(" + to_string(dl) + ")") : (ty[dl] == 4 ? rv[dl].str() : zq[dt[dl]]);
+    r = (ty[dr] < 4 || 5 < ty[dr]) ? ("z(" + to_string(dr) + ")") : (ty[dr] == 4 ? rv[dr].str() : zq[dt[dr]]);
+    if (ty[i] == 0) {
+        if (dt[i] == 5) pl.push_front(l + "-" + r);
+        if (dt[i] == 6) {
+            uf.push(make_pair(50, "l"));
+            pl.push_front(l+"-"+r+"+l^2");
+        }
+        if (dt[i] == 7) {
+            uf.push(make_pair(50, "l"));
+            pl.push_front(l+"-"+r+"-l^2");
+        }
+        if (dt[i] == 8) {
+            uf.push(make_pair(50, "l"));
+            uf.push(make_pair(50, "m"));
+            pl.push_front("l*m-1");
+            pl.push_front(l+"-"+r+"+l^2");
+        }
+        if (dt[i] == 9) {
+            uf.push(make_pair(50, "l"));
+            uf.push(make_pair(50, "m"));
+            pl.push_front("l*m-1");
+            pl.push_front(l+"-"+r+"-l^2");
+        }
+        if (dt[i] == 10) {
+            uf.push(make_pair(50, "l"));
+            uf.push(make_pair(50, "m"));
+            pl.push_front("l*m-1");
+            pl.push_front(l+"-"+r+"-l");
+        }
+        return;
+    }
+    if (dt[i] == 0) {
+        uf.push(make_pair(100, "z(" + to_string(i) + ")"));
+        pl.push_back("z(" + to_string(i) + ")-(" + l + "+" + r + ")");
+    }
+    if (dt[i] == 1) {
+        uf.push(make_pair(100, "z(" + to_string(i) + ")"));
+        pl.push_back("z(" + to_string(i) + ")-(" + l + "-" + r + ")");
+    }
+    if (dt[i] == 2) {
+        uf.push(make_pair(100, "z(" + to_string(i) + ")"));
+        pl.push_back("z(" + to_string(i) + ")-(" + l + "*" + r + ")");
+    }
+    if (dt[i] == 3) {
+        uf.push(make_pair(80, "z(" + to_string(i) + ")"));
+        pl.push_back("z(" + to_string(i) + ")*" + r + "-" + l);
+    }
+    if (dt[i] == 4) {
+        uf.push(make_pair(0, "z(" + to_string(i) + ")"));
+        if (rv[dr].p == 1) pl.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "-" + l);
+        else if (rv[dr].q == 1) pl.push_back("z(" + to_string(i) + ")-" + l + "^" + to_string(rv[dr].p));
+        else pl.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "-" + l + "^" + to_string(rv[dr].p));
+    }
+}
+
 string crt(int i) {
     string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[8] = {"a", "b", "c", "A", "B", "C", "s", "r"};
     if (ty[i] == 4) return "(" + to_string(rv[i].p) + "/" + to_string(rv[i].q) + ")";
@@ -213,12 +267,12 @@ string crt(int i) {
 }
 
 /*  TODO
-    convert negative/?rational? powers
-    output equation tree to singular
+    debugging
     ?implement user shorthand definitions
     ?decimal point input support
 */
 int main() {
+    //freopen("out.txt", "w", stdout);
     ios_base::sync_with_stdio(0);
     int N, f, x, i, j;
     char zp[5] = {'+', '-', '*', '/', '^'}, zq[8] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r'}; //operator-to-integer, term-to-integer
@@ -321,26 +375,34 @@ int main() {
     }
     cnd(0);
     if (dq.size() > 1) syr();
-    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d\n", i, ty[i], dt[i], ds[i].first, ds[i].second);
-    for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
-    printf("\n");
     rv.assign(ty.size(), rat(0, 1));
     rv[0] = 1;
     rd0(dq[0]);
-    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
-    for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
-    printf("\n");
-    cout << crt(dq[0]) << endl;
     ip.assign(ty.size(), 0);
-    rd1(dq[0]);
-    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
-    for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
-    printf("\n");
-    cout << crt(dq[0]) << endl;
+    //rd1(dq[0]);
     rd2(dq[0], -1, 0);
-    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
+    /*for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
     printf("\n");
     cout << crt(dq[0]) << endl;
+    cout << endl;*/
+    cmp(dq[0]);
+    cout << "ring r = 0, (a, b, c, w, x, y, ";
+    while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
+    cout << "i, j, k), dp;" << endl;
+    cout << "poly t0 = a^2-((i-j)^2+k^2);" << endl;
+    cout << "poly t1 = b^2-(i^2+k^2);" << endl;
+    cout << "poly t2 = c^2-i^2;" << endl;
+    cout << "poly c0 = a-w^2;" << endl;
+    cout << "poly c1 = b-x^2;" << endl;
+    cout << "poly c2 = c-y^2;" << endl;
+    for (i = pl.size() - 1; i; --i) cout << "poly p" + to_string(pl.size() - i - 1) + " = " + pl[i] << ";" << endl;
+    cout << "poly rs = " + pl[0] + ";" << endl;
+    cout << endl;
+    cout << "ideal I = t0, t1, t2, c0, c1, c2";
+    for (i = 0; i < pl.size() - 1; ++i) cout << ", p" + to_string(i);
+    cout << ";" << endl;
+    cout << "I = groebner(I);" << endl;
+    cout << "reduce(rs, I);" << endl;
     return 0;
 }
