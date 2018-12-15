@@ -272,7 +272,7 @@ string crt(int i) {
     ?decimal point input support
 */
 int main() {
-    //freopen("out.txt", "w", stdout);
+    freopen("out.txt", "w", stdout);
     ios_base::sync_with_stdio(0);
     int N, f, x, i, j;
     char zp[5] = {'+', '-', '*', '/', '^'}, zq[8] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r'}; //operator-to-integer, term-to-integer
@@ -390,6 +390,7 @@ int main() {
     cout << "ring r = 0, (a, b, c, w, x, y, ";
     while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
     cout << "i, j, k), dp;" << endl;
+    cout << endl;
     cout << "poly t0 = a^2-((i-j)^2+k^2);" << endl;
     cout << "poly t1 = b^2-(i^2+k^2);" << endl;
     cout << "poly t2 = c^2-i^2;" << endl;
