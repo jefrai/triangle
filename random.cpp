@@ -267,6 +267,7 @@ string crt(int i) {
 }
 
 /*  TODO
+    area of triangle
     debugging
     ?implement user shorthand definitions
     ?decimal point input support
@@ -387,20 +388,25 @@ int main() {
     cout << crt(dq[0]) << endl;
     cout << endl;*/
     cmp(dq[0]);
-    cout << "ring r = 0, (a, b, c, w, x, y, ";
+    cout << "ring r = 0, (s, ";
     while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
-    cout << "i, j, k), dp;" << endl;
+    cout << "a, b, c, A, B, C, r, w, x, y, i, j, k), dp;" << endl; //u, v, w, x, y, z
     cout << endl;
     cout << "poly t0 = a^2-((i-j)^2+k^2);" << endl;
     cout << "poly t1 = b^2-(i^2+k^2);" << endl;
     cout << "poly t2 = c^2-i^2;" << endl;
+    cout << "poly t3 = s-(a+b+c)/2;" << endl;
+    cout << "poly t4 = r-??????"
+    cout << "poly t5 = 2rA-a;" << endl;
+    cout << "poly t6 = 2rB-b;" << endl;
+    cout << "poly t7 = 2rC-c;" << endl;
     cout << "poly c0 = a-w^2;" << endl;
     cout << "poly c1 = b-x^2;" << endl;
     cout << "poly c2 = c-y^2;" << endl;
     for (i = pl.size() - 1; i; --i) cout << "poly p" + to_string(pl.size() - i - 1) + " = " + pl[i] << ";" << endl;
     cout << "poly rs = " + pl[0] + ";" << endl;
     cout << endl;
-    cout << "ideal I = t0, t1, t2, c0, c1, c2";
+    cout << "ideal I = t0, t1, t2, t3, t4, t5, t6, t7, c0, c1, c2";
     for (i = 0; i < pl.size() - 1; ++i) cout << ", p" + to_string(i);
     cout << ";" << endl;
     cout << "I = groebner(I);" << endl;
