@@ -41,6 +41,7 @@ using namespace std;
 
 /*
 (1/(a/(b/c)))^(1/5)<=((a+b)^(-3/7))^(-7/5)
+1=cC+ab(5s+(a^(-3/4)+b^5)^2)^(-3)
 
 -A
 375
@@ -152,11 +153,11 @@ void rd0(int i) { //simplification of rational expressions
     }
 }
 
-void rd1(int i, int o, bool s) { //propagation/elimination of negative powers
+void rd1(int i) { //propagation/elimination of negative powers
     printf("?%d %d %d %d\n", i, ty[i], ds[i].first, ds[i].second);
     if (ty[i] == 4 || ty[i] == 5) return;
-    rd1(ds[i].first, i, 0);
-    rd1(ds[i].second, i, 1);
+    rd1(ds[i].first);
+    rd1(ds[i].second);
     int dl = ds[i].first, dr = ds[i].second; //original left and right descendants
     if (0 <= dt[i] && dt[i] <= 1) {
         if (ip[dr] > -1) {ds[i].first = mp(dl, ip[dr]); ip[i] = ip[dr];}
@@ -191,11 +192,24 @@ void rd1(int i, int o, bool s) { //propagation/elimination of negative powers
     }
 }
 
-string conr(int i) {
+void rd2(int i, int o, bool s) {
+    if (ty[i] == 4 || ty[i] == 5) return;
+    rd2(ds[i].first, i, 0);
+    rd2(ds[i].second, i, 1);
+    if (o < 0) return;
+    int dl = ds[i].first, dr = ds[i].second;
+    if (dt[i] == 0 && ty[dl] == 4 && rv[dl] == 0) {(s ? ds[o].second : ds[o].first) = dr; return;}
+    if (dt[i] <= 1 && ty[dr] == 4 && rv[dr] == 0) {(s ? ds[o].second : ds[o].first) = dl; return;}
+    if (dt[i] == 2 && ty[dl] == 4 && rv[dl] == 1) {(s ? ds[o].second : ds[o].first) = dr; return;}
+    if (dt[i] == 2 && ty[dr] == 4 && rv[dr] == 1) {(s ? ds[o].second : ds[o].first) = dl; return;}
+    if (dt[i] == 4 && ty[dl] == 4 && (rv[dl] == 0 || rv[dl] == 1 || rv[dr] == 1)) {(s ? ds[o].second : ds[o].first) = dl; return;}
+}
+
+string crt(int i) {
     string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[8] = {"a", "b", "c", "A", "B", "C", "s", "r"};
     if (ty[i] == 4) return "(" + to_string(rv[i].p) + "/" + to_string(rv[i].q) + ")";
     if (ty[i] == 5) return zq[dt[i]];
-    if (ty[i] == 0 || ty[i] == 3) return "(" + conr(ds[i].first) + zp[dt[i]] + conr(ds[i].second) + ")";
+    if (ty[i] == 0 || ty[i] == 3) return "(" + crt(ds[i].first) + zp[dt[i]] + crt(ds[i].second) + ")";
 }
 
 /*  TODO
@@ -316,12 +330,17 @@ int main() {
     for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
     printf("\n");
-    cout << conr(dq[0]) << endl;
+    cout << crt(dq[0]) << endl;
     ip.assign(ty.size(), 0);
-    rd1(dq[0], -1, 0);
+    rd1(dq[0]);
     for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
     printf("\n");
-    cout << conr(dq[0]) << endl;
+    cout << crt(dq[0]) << endl;
+    rd2(dq[0], -1, 0);
+    for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
+    for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
+    printf("\n");
+    cout << crt(dq[0]) << endl;
     return 0;
 }
