@@ -40,6 +40,8 @@ using namespace std;
 
 
 /*
+(1/(a/(b/c)))^(1/5)<=((a+b)^(-3/7))^(-7/5)
+
 -A
 375
 24bC
@@ -59,6 +61,7 @@ struct rat{ //rational
     void operator+=(long long v) {*this = *this + v;}
     rat operator-(const rat &v) const {return rat(p * v.q - v.p * q, q * v.q);}
     rat operator-(long long v) const {return rat(p - v * q, q);}
+    rat operator-() const {return rat(-p, q);}
     void operator-=(const rat &v) {*this = *this - v;}
     void operator-=(long long v) {*this = *this - v;}
     rat operator*(const rat &v) const {return rat(p * v.p, q * v.q);}
@@ -84,11 +87,10 @@ struct rat{ //rational
 };
 
 deque<int> dq; //deque
-vector<int> ty, dt; //type, data
+vector<int> ty, dt, ip; //type, data, inverted powers
 vector<pair<int, int> > ds; //descendants
 map<char, int> om, ti; //operator-to-integer, term-to-integer map
 vector<rat> rv; //rational value
-vector<vector<pair<int, rat> > > ip; //inverted powers
 
 inline void syr() {cout << "SYNTAX ERROR " << endl;/* exit(0);*/}
 
@@ -102,6 +104,7 @@ inline string rf(string s, string a, string b) {for (int i = 0; (i = s.find(a, i
 
 inline long long pw(long long i, long long p) {return !p ? 1 : ((p == 1) ? i : (pw(i * i, p / 2) * (p % 2 ? i : 1)));}
 inline rat pw(rat i, long long p) {return rat(pw(i.p, p), pw(i.q, p));}
+inline int mp(int i, int j) {ty.push_back(3); dt.push_back(2); ds.push_back(make_pair(i, j)); ip.push_back(-1); rv.push_back(rat(0, 1)); return ty.size() - 1;}
 
 inline bool inr(bool z) { //chooses interpretation of preceding items as integers or multiplication | performed before appending digits, terms or open parentheses
     if (dq.empty() || ty[dq.back()] < 3 || 5 < ty[dq.back()]) return 0;
@@ -149,12 +152,50 @@ void rd0(int i) { //simplification of rational expressions
     }
 }
 
-void rd1(int i) { //propagation/elimination of negative powers
+void rd1(int i, int o, bool s) { //propagation/elimination of negative powers
+    printf("?%d %d %d %d\n", i, ty[i], ds[i].first, ds[i].second);
+    if (ty[i] == 4 || ty[i] == 5) return;
+    rd1(ds[i].first, i, 0);
+    rd1(ds[i].second, i, 1);
     int dl = ds[i].first, dr = ds[i].second; //original left and right descendants
-    //TRUNCATE OBSOLETE LEFT IDENTITY MULTIPLICATION DESCENDANT
-    if (ty[i] != 4) {rd1(ds[i].first); rd1(ds[i].second);}
-    if (ty[i] == 3 && dt[i] == 4 && ty[ds[i].second] != 4) syr();
-    if (ty[i] == 3 && dt[i] == 4 && rv[ds[i].second] < 0) {ty[i] = 1; rv[i] = 1; ip[i].push_back(make_pair(ds[i].first, rv[ds[i].second]));}
+    if (0 <= dt[i] && dt[i] <= 1) {
+        if (ip[dr] > -1) {ds[i].first = mp(dl, ip[dr]); ip[i] = ip[dr];}
+        if (ip[dl] > -1) {ds[i].second = mp(ip[dl], dr); ip[i] = ip[dl];}
+        if (ip[dl] > -1 && ip[dr] > -1) ip[i] = mp(ip[dl], ip[dr]);
+        //if (ty[ds[i].first] == 4 && rv[ds[i].first] == 0) (s ? ds[o].second : ds[o].first) = ds[i].second;
+        //if (ty[ds[i].second] == 4 && rv[ds[i].second] == 0) (s ? ds[o].second : ds[o].first) = ds[i].first;
+    }
+    if (dt[i] == 3) {swap(ds[i].second, ip[ds[i].second]); dt[i] = 2;}
+    if (dt[i] == 2) {
+        if (ip[dl] > -1) ip[i] = ip[dl];
+        if (ip[dr] > -1) ip[i] = ip[dr];
+        if (ip[dl] > -1 && ip[dr] > -1) ip[i] = mp(ip[dl], ip[dr]);
+        //if (ty[ds[i].first] == 4 && rv[ds[i].first] == 1) (s ? ds[o].second : ds[o].first) = ds[i].second;
+        //if (ty[ds[i].second] == 4 && rv[ds[i].second] == 1) (s ? ds[o].second : ds[o].first) = ds[i].first;
+    }
+    if (dt[i] == 4 && ty[ds[i].second] != 4) syr();
+    if (dt[i] == 4) ip[i] = ip[ds[i].first];
+    if (dt[i] == 4 && rv[ds[i].second] < 0) {swap(ds[i].first, ip[i]); rv[ds[i].second] = -rv[ds[i].second];}
+    if (dt[i] == 4) {
+        ty.push_back(3);
+        dt.push_back(4);
+        ds.push_back(make_pair(ip[i], ds[i].second));
+        ip.push_back(0);
+        rv.push_back(rat(0, 1));
+        ip[i] = ty.size() - 1;
+    }
+    if (5 <= dt[i]) {
+        if (ip[dr] > -1) {ds[i].first = mp(dl, ip[dr]); ip[i] = ip[dr];}
+        if (ip[dl] > -1) {ds[i].second = mp(ip[dl], dr); ip[i] = ip[dl];}
+        if (ip[dl] > -1 && ip[dr] > -1) ip[i] = mp(ip[dl], ip[dr]);
+    }
+}
+
+string conr(int i) {
+    string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[8] = {"a", "b", "c", "A", "B", "C", "s", "r"};
+    if (ty[i] == 4) return "(" + to_string(rv[i].p) + "/" + to_string(rv[i].q) + ")";
+    if (ty[i] == 5) return zq[dt[i]];
+    if (ty[i] == 0 || ty[i] == 3) return "(" + conr(ds[i].first) + zp[dt[i]] + conr(ds[i].second) + ")";
 }
 
 /*  TODO
@@ -170,6 +211,9 @@ int main() {
     int cp[5] = {1, 1, 2, 2, 4}; //condensation priority
     for (i = 0; i < 5; ++i) om[zp[i]] = i;
     for (i = 0; i < 8; ++i) ti[zq[i]] = i;
+    ty.push_back(4);
+    dt.push_back(1);
+    ds.push_back(make_pair(-1, -1));
     string s;
     getline(cin, s);
     N = s.size();
@@ -184,8 +228,8 @@ int main() {
         if (s[i] == '<') {
             if (!cnd(0)) syr();
             ty.push_back(1);
-            if (i + 1 < N && s[i + 1] == '=') {dt.push_back(8); ++i;}
-            else dt.push_back(6);
+            if (i + 1 < N && s[i + 1] == '=') {dt.push_back(6); ++i;}
+            else dt.push_back(8);
             ds.push_back(make_pair(-1, -1));
             dq.push_back(ty.size() - 1);
             continue;
@@ -193,8 +237,8 @@ int main() {
         if (s[i] == '>') {
             if (!cnd(0)) syr();
             ty.push_back(1);
-            if (i + 1 < N && s[i + 1] == '=') {dt.push_back(9); ++i;}
-            else dt.push_back(7);
+            if (i + 1 < N && s[i + 1] == '=') {dt.push_back(7); ++i;}
+            else dt.push_back(9);
             ds.push_back(make_pair(-1, -1));
             dq.push_back(ty.size() - 1);
             continue;
@@ -203,7 +247,7 @@ int main() {
             if (!cnd(0)) syr();
             if (i + 1 < N && s[i + 1] == '=') {
                 ty.push_back(1);
-                dq.push_back(10);
+                dt.push_back(10);
                 ds.push_back(make_pair(-1, -1));
                 dq.push_back(ty.size() - 1);
                 ++i;
@@ -267,13 +311,17 @@ int main() {
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
     printf("\n");
     rv.assign(ty.size(), rat(0, 1));
+    rv[0] = 1;
     rd0(dq[0]);
     for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
     printf("\n");
-    ip.resize(ty.size());
-    rd1(dq[0]);
+    cout << conr(dq[0]) << endl;
+    ip.assign(ty.size(), 0);
+    rd1(dq[0], -1, 0);
     for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
     for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
+    printf("\n");
+    cout << conr(dq[0]) << endl;
     return 0;
 }
