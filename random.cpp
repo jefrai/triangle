@@ -35,14 +35,16 @@ using namespace std;
 5   sin C
 6   s - semiperimeter
 7   r - radius of circumcircle
+8   S - area
 */
 
 
 
 /*
+S=(s(s-a)(s-b)(s-c))^(1/2)
+
 (1/(a/(b/c)))^(1/5)<=((a+b)^(-3/7))^(-7/5)
 1=cC+ab(5s+(a^(-3/4)+b^5)^2)^(-3)
-
 -A
 375
 24bC
@@ -197,7 +199,7 @@ void rd2(int i, int o, bool s) { //cleaning up of identity operations
 }
 
 void cmp(int i) { //compile tree into polynomials
-    string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[8] = {"a", "b", "c", "A", "B", "C", "s", "r"};
+    string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[9] = {"a", "b", "c", "A", "B", "C", "s", "r", "S"};
     if (ty[i] == 4 || ty[i] == 5) return;
     cmp(ds[i].first);
     cmp(ds[i].second);
@@ -253,33 +255,38 @@ void cmp(int i) { //compile tree into polynomials
     }
     if (dt[i] == 4) {
         uf.push(make_pair(0, "z(" + to_string(i) + ")"));
-        if (rv[dr].p == 1) pl.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "-" + l);
-        else if (rv[dr].q == 1) pl.push_back("z(" + to_string(i) + ")-" + l + "^" + to_string(rv[dr].p));
-        else pl.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "-" + l + "^" + to_string(rv[dr].p));
+        if (rv[dr] > 0) {
+            if (rv[dr].p == 1) pl.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "-" + l);
+            else if (rv[dr].q == 1) pl.push_back("z(" + to_string(i) + ")-" + l + "^" + to_string(rv[dr].p));
+            else pl.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "-" + l + "^" + to_string(rv[dr].p));
+        } else {
+            if (rv[dr].p == -1) pl.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "*" + l + "-1");
+            else if (rv[dr].q == 1) pl.push_back("z(" + to_string(i) + ")*" + l + "^" + to_string(rv[dr].p) + "-1");
+            else pl.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "*" + l + "^" + to_string(rv[dr].p) + "-1");
+        }
     }
 }
 
 string crt(int i) {
-    string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[8] = {"a", "b", "c", "A", "B", "C", "s", "r"};
+    string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[9] = {"a", "b", "c", "A", "B", "C", "s", "r", "S"};
     if (ty[i] == 4) return "(" + to_string(rv[i].p) + "/" + to_string(rv[i].q) + ")";
     if (ty[i] == 5) return zq[dt[i]];
     if (ty[i] == 0 || ty[i] == 3) return "(" + crt(ds[i].first) + zp[dt[i]] + crt(ds[i].second) + ")";
 }
 
 /*  TODO
-    area of triangle
     debugging
     ?implement user shorthand definitions
     ?decimal point input support
 */
 int main() {
-    freopen("out.txt", "w", stdout);
+    //freopen("out.txt", "w", stdout);
     ios_base::sync_with_stdio(0);
     int N, f, x, i, j;
-    char zp[5] = {'+', '-', '*', '/', '^'}, zq[8] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r'}; //operator-to-integer, term-to-integer
+    char zp[5] = {'+', '-', '*', '/', '^'}, zq[9] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r', 'S'}; //operator-to-integer, term-to-integer
     int cp[5] = {1, 1, 2, 2, 4}; //condensation priority
     for (i = 0; i < 5; ++i) om[zp[i]] = i;
-    for (i = 0; i < 8; ++i) ti[zq[i]] = i;
+    for (i = 0; i < 9; ++i) ti[zq[i]] = i;
     ty.push_back(4);
     dt.push_back(1);
     ds.push_back(make_pair(-1, -1));
@@ -388,25 +395,27 @@ int main() {
     cout << crt(dq[0]) << endl;
     cout << endl;*/
     cmp(dq[0]);
-    cout << "ring r = 0, (s, ";
+    cout << "ring r = 0, (s, S, ";
     while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
-    cout << "a, b, c, A, B, C, r, w, x, y, i, j, k), dp;" << endl; //u, v, w, x, y, z
+    cout << "r, a, b, c, A, B, C, v, w, x, y, i, j, k), dp;" << endl;
     cout << endl;
     cout << "poly t0 = a^2-((i-j)^2+k^2);" << endl;
     cout << "poly t1 = b^2-(i^2+k^2);" << endl;
     cout << "poly t2 = c^2-i^2;" << endl;
     cout << "poly t3 = s-(a+b+c)/2;" << endl;
-    cout << "poly t4 = r-??????"
-    cout << "poly t5 = 2rA-a;" << endl;
-    cout << "poly t6 = 2rB-b;" << endl;
-    cout << "poly t7 = 2rC-c;" << endl;
+    cout << "poly t4 = S-ik/2;" << endl;
+    cout << "poly t5 = 4rS-abc;" << endl;
+    cout << "poly t6 = 2rA-a;" << endl;
+    cout << "poly t7 = 2rB-b;" << endl;
+    cout << "poly t8 = 2rC-c;" << endl;
     cout << "poly c0 = a-w^2;" << endl;
     cout << "poly c1 = b-x^2;" << endl;
     cout << "poly c2 = c-y^2;" << endl;
+    cout << "poly c3 = S-v^2;" << endl;
     for (i = pl.size() - 1; i; --i) cout << "poly p" + to_string(pl.size() - i - 1) + " = " + pl[i] << ";" << endl;
     cout << "poly rs = " + pl[0] + ";" << endl;
     cout << endl;
-    cout << "ideal I = t0, t1, t2, t3, t4, t5, t6, t7, c0, c1, c2";
+    cout << "ideal I = t0, t1, t2, t3, t4, t5, t6, t7, t8, c0, c1, c2, c3";
     for (i = 0; i < pl.size() - 1; ++i) cout << ", p" + to_string(i);
     cout << ";" << endl;
     cout << "I = groebner(I);" << endl;
