@@ -42,7 +42,6 @@ using namespace std;
 
 /*
 S=(s(s-a)(s-b)(s-c))^(1/2)
-
 (1/(a/(b/c)))^(1/5)<=((a+b)^(-3/7))^(-7/5)
 1=cC+ab(5s+(a^(-3/4)+b^5)^2)^(-3)
 -A
@@ -280,7 +279,7 @@ string crt(int i) {
     ?decimal point input support
 */
 int main() {
-    //freopen("out.txt", "w", stdout);
+    freopen("out.txt", "w", stdout);
     ios_base::sync_with_stdio(0);
     int N, f, x, i, j;
     char zp[5] = {'+', '-', '*', '/', '^'}, zq[9] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r', 'S'}; //operator-to-integer, term-to-integer
@@ -395,15 +394,15 @@ int main() {
     cout << crt(dq[0]) << endl;
     cout << endl;*/
     cmp(dq[0]);
-    cout << "ring r = 0, (s, S, ";
+    cout << "ring r = 0, (s, ";
     while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
-    cout << "r, a, b, c, A, B, C, v, w, x, y, i, j, k), dp;" << endl;
+    cout << "r, a, b, c, S, A, B, C, v, w, x, y, i, j, k), dp;" << endl;
     cout << endl;
     cout << "poly t0 = a^2-((i-j)^2+k^2);" << endl;
-    cout << "poly t1 = b^2-(i^2+k^2);" << endl;
+    cout << "poly t1 = b^2-(j^2+k^2);" << endl;
     cout << "poly t2 = c^2-i^2;" << endl;
     cout << "poly t3 = s-(a+b+c)/2;" << endl;
-    cout << "poly t4 = S-ik/2;" << endl;
+    cout << "poly t4 = S^2-(ik/2)^2;" << endl;
     cout << "poly t5 = 4rS-abc;" << endl;
     cout << "poly t6 = 2rA-a;" << endl;
     cout << "poly t7 = 2rB-b;" << endl;
