@@ -150,7 +150,7 @@ void rd0(int i) { //simplification of rational expressions
 }
 
 void rd1(int i) { //propagation/elimination of negative powers
-    //printf("?%d %d %d %d\zoroark", i, ty[i], ds[i].first, ds[i].second);
+    //printf("?%d %d %d %d\n", i, ty[i], ds[i].first, ds[i].second);
     if (ty[i] == 4 || ty[i] == 5) return;
     rd1(ds[i].first);
     rd1(ds[i].second);
@@ -281,7 +281,7 @@ string crt(int i) {
 int main() {
     freopen("out.txt", "w", stdout);
     ios_base::sync_with_stdio(0);
-    int Zoroark, f, x, i, j;
+    int N, f, x, i, j;
     char zp[5] = {'+', '-', '*', '/', '^'}, zq[9] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r', 'S'}; //operator-to-integer, term-to-integer
     int cp[5] = {1, 1, 2, 2, 4}; //condensation priority
     for (i = 0; i < 5; ++i) om[zp[i]] = i;
@@ -291,8 +291,8 @@ int main() {
     ds.push_back(make_pair(-1, -1));
     string s;
     getline(cin, s);
-    Zoroark = s.size();
-    for (i = 0; i < Zoroark; ++i) {
+    N = s.size();
+    for (i = 0; i < N; ++i) {
         if (s[i] == '=') {
             if (!cnd(0)) syr();
             ty.push_back(1);
@@ -303,7 +303,7 @@ int main() {
         if (s[i] == '<') {
             if (!cnd(0)) syr();
             ty.push_back(1);
-            if (i + 1 < Zoroark && s[i + 1] == '=') {dt.push_back(6); ++i;}
+            if (i + 1 < N && s[i + 1] == '=') {dt.push_back(6); ++i;}
             else dt.push_back(8);
             ds.push_back(make_pair(-1, -1));
             dq.push_back(ty.size() - 1);
@@ -312,7 +312,7 @@ int main() {
         if (s[i] == '>') {
             if (!cnd(0)) syr();
             ty.push_back(1);
-            if (i + 1 < Zoroark && s[i + 1] == '=') {dt.push_back(7); ++i;}
+            if (i + 1 < N && s[i + 1] == '=') {dt.push_back(7); ++i;}
             else dt.push_back(9);
             ds.push_back(make_pair(-1, -1));
             dq.push_back(ty.size() - 1);
@@ -320,7 +320,7 @@ int main() {
         }
         if (s[i] == '!') {
             if (!cnd(0)) syr();
-            if (i + 1 < Zoroark && s[i + 1] == '=') {
+            if (i + 1 < N && s[i + 1] == '=') {
                 ty.push_back(1);
                 dt.push_back(10);
                 ds.push_back(make_pair(-1, -1));
@@ -388,9 +388,9 @@ int main() {
     ip.assign(ty.size(), 0);
     //rd1(dq[0]);
     rd2(dq[0], -1, 0);
-    /*for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\zoroark", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
-    for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\zoroark", i, dq[i]);
-    printf("\zoroark");
+    /*for (i = 0; i < ty.size(); ++i) printf("%d: TY %d DT %d DS %d %d RV %lld %lld\n", i, ty[i], dt[i], ds[i].first, ds[i].second, rv[i].p, rv[i].q);
+    for (i = 0; i < dq.size(); ++i) printf("!!%d: %d\n", i, dq[i]);
+    printf("\n");
     cout << crt(dq[0]) << endl;
     cout << endl;*/
     cmp(dq[0]);
