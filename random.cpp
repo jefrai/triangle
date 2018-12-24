@@ -98,7 +98,7 @@ map<string, int> mpi, mci; //map from point identifier to index
 vector<pair<int, int> > pcd; //coordinate indices of point
 deque<string> pl; //polynomials
 
-inline string rs(int i, bool d) {return "z(" + to_string(d ? pcd[i].second : pcd[i].first) + ")";}
+inline string rs(int i, bool d) {return "w(" + to_string(d ? pcd[i].second : pcd[i].first) + ")";}
 
 void create(vector<string> f) {
     mpi[f[1]] = pcd.size();
@@ -306,7 +306,7 @@ void other(vector<string> f) {
 deque<int> dq; //deque
 vector<int> ty, dt, ip; //type, data, inverted powers
 vector<pair<int, int> > ds; //descendants
-map<char, int> om, ti; //operator-to-integer, term-to-integer map
+map<char, int> om; //operator-to-integer map
 vector<rat> rv; //rational value
 priority_queue<pair<int, string> > uf; //used variables
 deque<string> ps; //polynomials
@@ -412,14 +412,14 @@ void rd2(int i, int o, bool s) { //cleaning up of identity operations
 }
 
 void cmp(int i) { //compile tree into polynomials
-    string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[9] = {"a", "b", "c", "A", "B", "C", "s", "r", "S"};
+    string zp[6] = {"+", "-", "*", "/", "^", "="};
     if (ty[i] == 4 || ty[i] == 5) return;
     cmp(ds[i].first);
     cmp(ds[i].second);
     int dl = ds[i].first, dr = ds[i].second;
     string l, r;
-    l = (ty[dl] < 4 || 5 < ty[dl]) ? ("z(" + to_string(dl) + ")") : (ty[dl] == 4 ? rv[dl].str() : zq[dt[dl]]);
-    r = (ty[dr] < 4 || 5 < ty[dr]) ? ("z(" + to_string(dr) + ")") : (ty[dr] == 4 ? rv[dr].str() : zq[dt[dr]]);
+    l = (ty[dl] < 4 || 5 < ty[dl]) ? ("z(" + to_string(dl) + ")") : (ty[dl] == 4 ? rv[dl].str() : rs(dt[dl] / 2, dt[dl] % 2));
+    r = (ty[dr] < 4 || 5 < ty[dr]) ? ("z(" + to_string(dr) + ")") : (ty[dr] == 4 ? rv[dr].str() : rs(dt[dr] / 2, dt[dr] % 2));
     if (ty[i] == 0) {
         if (dt[i] == 5) ps.push_front(l + "-" + r);
         if (dt[i] == 6) {
@@ -481,9 +481,9 @@ void cmp(int i) { //compile tree into polynomials
 }
 
 string crt(int i) {
-    string zp[11] = {"+", "-", "*", "/", "^", "=", "<=", ">=", "<", ">", "!="}, zq[9] = {"a", "b", "c", "A", "B", "C", "s", "r", "S"};
+    string zp[6] = {"+", "-", "*", "/", "^", "="};
     if (ty[i] == 4) return "(" + to_string(rv[i].p) + "/" + to_string(rv[i].q) + ")";
-    if (ty[i] == 5) return zq[dt[i]];
+    if (ty[i] == 5) return rs(dt[i] / 2, dt[i] % 2);
     if (ty[i] == 0 || ty[i] == 3) return "(" + crt(ds[i].first) + zp[dt[i]] + crt(ds[i].second) + ")";
 }
 
@@ -492,7 +492,6 @@ void query(string s) {
     char zp[5] = {'+', '-', '*', '/', '^'}, zq[9] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r', 'S'}; //operator-to-integer, term-to-integer
     int cp[5] = {1, 1, 2, 2, 4}; //condensation priority
     for (i = 0; i < 5; ++i) om[zp[i]] = i;
-    for (i = 0; i < 9; ++i) ti[zq[i]] = i;
     ty.push_back(4);
     dt.push_back(1);
     ds.push_back(make_pair(-1, -1));
@@ -504,35 +503,6 @@ void query(string s) {
             dt.push_back(5);
             ds.push_back(make_pair(-1, -1));
             dq.push_back(ty.size() - 1);
-        }
-        if (s[i] == '<') {
-            if (!cnd(0)) syr();
-            ty.push_back(1);
-            if (i + 1 < N && s[i + 1] == '=') {dt.push_back(6); ++i;}
-            else dt.push_back(8);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-            continue;
-        }
-        if (s[i] == '>') {
-            if (!cnd(0)) syr();
-            ty.push_back(1);
-            if (i + 1 < N && s[i + 1] == '=') {dt.push_back(7); ++i;}
-            else dt.push_back(9);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-            continue;
-        }
-        if (s[i] == '!') {
-            if (!cnd(0)) syr();
-            if (i + 1 < N && s[i + 1] == '=') {
-                ty.push_back(1);
-                dt.push_back(10);
-                ds.push_back(make_pair(-1, -1));
-                dq.push_back(ty.size() - 1);
-                ++i;
-                continue;
-            } else syr();
         }
         if (s[i] == '(') {
             inr(0);
@@ -577,15 +547,34 @@ void query(string s) {
                 dq.push_back(ty.size() - 1);
             } else syr();
         }
-        if (s[i] == 'd' && i + 1 < N && s[i + 1] == 's') {
-            //
-        }
-        if (ti.find(s[i]) != ti.end()) {
+        if (i + 1 < N && s[i] == 'x' && s[i + 1] == '(') {
+            string a = "";
+            for (i += 2; i < N && s[i] != ')'; ++i) a += s[i];
+            if (i == N) syr();
             inr(0);
             ty.push_back(5);
-            dt.push_back(ti[s[i]]);
+            dt.push_back(mpi[a] * 2);
             ds.push_back(make_pair(-1, -1));
             dq.push_back(ty.size() - 1);
+        }
+        if (i + 1 < N && s[i] == 'y' && s[i + 1] == '(') {
+            string a = "";
+            for (i += 2; i < N && s[i] != ')'; ++i) a += s[i];
+            if (i == N) syr();
+            inr(0);
+            ty.push_back(5);
+            dt.push_back(mpi[a] * 2 + 1);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+        }
+        if (i + 2 < N && s[i] == 'd' && s[i + 1] == 's' && s[i + 2] == '(') {
+            string a = "", b = "";
+            for (i += 3; i < N && s[i] != ')'; ++i) {
+                if (s[i] == ',') swap(a, b);
+                else b += s[i];
+            }
+            if (i == N) syr();
+            ////xy
         }
     }
     cnd(0);
@@ -603,6 +592,9 @@ void query(string s) {
     cout << endl;*/
     cmp(dq[0]);
     cout << "ring r = 0, (s, ";
+
+    //////
+
     while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
     cout << "r, a, b, c, S, A, B, C, v, w, x, y, i, j, k), dp;" << endl;
     cout << endl;
