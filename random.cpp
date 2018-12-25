@@ -7,7 +7,8 @@ using namespace std;
 2   LN      LINE LOCUS CONSTRAINT
 3   RD      CIRCLE/RADIUS LOCUS CONSTRAINT
 4   MS      MISC.
-5   QR      QUERY
+5   NEG     NEGATED CONSTRAINT
+6   QR      QUERY
 */
 
 /*  0 - NEW POINT
@@ -46,9 +47,10 @@ using namespace std;
 */
 
 /*  4 - OTHER
-0   NEQ     NONEQUAL POINTS (1)
-1   ORI     POINT AS ORIGIN (0)
-2   AXI     POINT ON X-AXIS (0)
+0   EQL     EQUAL POINTS (1)
+1   NEQ     NONEQUAL POINTS (1)
+2   ORI     POINT AS ORIGIN (0)
+3   AXI     POINT ON X-AXIS (0)
 */
 
 struct rat{ //rational
@@ -91,7 +93,7 @@ struct rat{ //rational
     string str() {return q != 1 ? (to_string(p) + "/" + to_string(q)) : to_string(p);}
 };
 
-int nfc, ori = -1, axi = -1; //number of coordinates, (0, 0) point, (x, 0) point
+int nfc, npm, ori = -1, axi = -1; //number of coordinates, number of internal negation points, (0, 0) point, (x, 0) point
 set<char> apn; //alphanumeric characters
 vector<string> v; //vector
 vector<int> pv; //priority vector
@@ -292,6 +294,10 @@ void radial(vector<string> f) {
 
 void other(vector<string> f) {
     int r[2], i;
+    if (f[0] == "eql") {
+        for (i = 0; i < 2; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
+        pl.push_back("(" + rs(r[1], 0) + " - " + rs(r[0], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[0], 1) + ")^2");
+    }
     if (f[0] == "neq") {
         for (i = 0; i < 2; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
         pl.push_back("((" + rs(r[1], 0) + " - " + rs(r[0], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[0], 1) + ")^2) * w(" + to_string(nfc++) + ") - 1");
@@ -309,7 +315,7 @@ vector<pair<int, int> > ds; //descendants
 map<char, int> om; //operator-to-integer map
 vector<rat> rv; //rational value
 priority_queue<pair<int, string> > uf; //used variables
-deque<string> ps; //polynomials
+deque<string> ps, rp; //polynomials, result polynomials
 
 inline void syr() {cout << "SYNTAX ERROR " << endl;/* exit(0);*/}
 inline string rf(string s, string a, string b) {for (int i = 0; (i = s.find(a, i)) < s.size(); i += b.size()) s.replace(i, a.size(), b); return s;}
@@ -543,6 +549,14 @@ void opi(char c) {
     } else syr();
 }
 
+void tri(int i) {
+    inr(0);
+    ty.push_back(5);
+    dt.push_back(i);
+    ds.push_back(make_pair(-1, -1));
+    dq.push_back(ty.size() - 1);
+}
+
 void query(string s) {
     int N, f, x, i, j;
     char zp[5] = {'+', '-', '*', '/', '^'}, zq[9] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r', 'S'}; //operator-to-integer, term-to-integer
@@ -561,21 +575,13 @@ void query(string s) {
             string a = "";
             for (i += 2; i < N && s[i] != ')'; ++i) a += s[i];
             if (i == N) syr();
-            inr(0);
-            ty.push_back(5);
-            dt.push_back(mpi[a] * 2);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
+            tri(mpi[a] * 2);
         }
         if (i + 1 < N && s[i] == 'y' && s[i + 1] == '(') {
             string a = "";
             for (i += 2; i < N && s[i] != ')'; ++i) a += s[i];
             if (i == N) syr();
-            inr(0);
-            ty.push_back(5);
-            dt.push_back(mpi[a] * 2 + 1);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
+            tri(mpi[a] * 2 + 1);
         }
         if (i + 2 < N && s[i] == 'd' && s[i + 1] == 's' && s[i + 2] == '(') {
             string a = "", b = "";
@@ -586,90 +592,21 @@ void query(string s) {
             if (i == N) syr();
             boi();
             boi();
-
-
-            inr(0); //x0
-            ty.push_back(5);
-            dt.push_back(mpi[a] * 2);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            ty.push_back(2); //-
-            dt.push_back(om['-']);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            inr(0); //x1
-            ty.push_back(5);
-            dt.push_back(mpi[b] * 2);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            if (!cnd(0)) syr(); //)
-            if (dq.size() < 2 || ty[dq[dq.size() - 2]] != 6) syr();
-            x = dq.back();
-            for (j = 0; j < 2; ++j) dq.pop_back();
-            dq.push_back(x);
-            ty.push_back(7);
-            dt.push_back(0);
-            ds.push_back(make_pair(-1, -1));
-
-            ty.push_back(2); //^
-            dt.push_back(om['^']);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            ty.push_back(4); //2
-            dt.push_back(s[i] - '0');
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            ty.push_back(2); //+
-            dt.push_back(om['+']);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            inr(0); //(
-            ty.push_back(6);
-            dt.push_back(0);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            inr(0); //x0
-            ty.push_back(5);
-            dt.push_back(mpi[a] * 2);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            ty.push_back(2); //-
-            dt.push_back(om['-']);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            inr(0); //x1
-            ty.push_back(5);
-            dt.push_back(mpi[b] * 2);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            if (!cnd(0)) syr(); //)
-            if (dq.size() < 2 || ty[dq[dq.size() - 2]] != 6) syr();
-            x = dq.back();
-            for (j = 0; j < 2; ++j) dq.pop_back();
-            dq.push_back(x);
-            ty.push_back(7);
-            dt.push_back(0);
-            ds.push_back(make_pair(-1, -1));
-
-            ty.push_back(2); //^
-            dt.push_back(om['^']);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-
-            ty.push_back(4); //2
-            dt.push_back(s[i] - '0');
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
+            tri(mpi[a] * 2);
+            opi('-');
+            tri(mpi[b] * 2);
+            bci();
+            opi('^');
+            nmi('2');
+            opi('+');
+            boi();
+            tri(mpi[a] * 2 + 1);
+            opi('-');
+            tri(mpi[b] * 2 + 1);
+            bci();
+            opi('^');
+            nmi('2');
+            bci();
         }
     }
     cnd(0);
@@ -707,17 +644,52 @@ void query(string s) {
     cout << "reduce(rs, I);" << endl;
 }
 
+void result(vector<string> f) {
+
+}
+
+void gen() {
+
+}
+
+/*  TODO
+    MIRRORED POINTS
+    NEGATED STATEMENTS - CHECK
+    MULTIPLE QUERIES
+    RAW CONSTRAINTS
+    FORMATTED RESULTS
+
+    VERIFY
+
+    PT NEW A
+    PT NEW B
+    PT NEW C
+    PT NEW D
+    PT NEW E
+    PT NEW F
+    MS NEQ A B
+    MS NEQ C D
+    NEG LN PARA A B C D
+    FT ILL E A B C D
+    FT ILL F A B C D
+    QR RAW ds(E,F)=0
+
+    PT NEW A
+    PT NEW B
+    MS EQ A B
+    QR RAW ds(A,B)=0
+*/
+
 int main() {
     freopen("in.txt", "r", stdin);
     freopen("out.txt", "w", stdout);
     ios_base::sync_with_stdio(0);
-    string s;
+    string s, p;
     int N, i, j;
     for (i = 0; i < 10; ++i) apn.insert('0' + i);
     for (i = 0; i < 26; ++i) apn.insert('a' + i);
     for (i = 0; i < 26; ++i) apn.insert('A' + i);
     while (getline(cin, s)) {
-        for (i = 0; i < s.size(); ++i) if ('A' <= s[i] && s[i] <= 'Z') s[i] += 'a' - 'A';
         v.clear();
         v.push_back("");
         for (i = 0; i < s.size(); ++i) {
@@ -726,20 +698,44 @@ int main() {
         }
         if (v.back() == "") v.pop_back();
         if (v.empty()) continue;
+        for (i = 0; i < 2; ++i) for (j = 0; j < v[i].size(); ++j) if ('A' <= v[i][j] && v[i][j] <= 'Z') v[i][j] += 'a' - 'A';
         vector<string> w(v.begin() + 1, v.end());
         if (v[0] == "pt") create(w);
         if (v[0] == "ft") finite(w);
         if (v[0] == "ln") linear(w);
         if (v[0] == "rd") radial(w);
         if (v[0] == "ms") other(w);
-        if (v[0] == "qr") {
-            s = "";
-            for (i = 0; i < v.size(); ++i) s += v[i];
-            query(s);
-            return 0;
+        if (v[0] == "neg") {
+            for (i = 2; i < 3; ++i) for (j = 0; j < v[i].size(); ++j) if ('A' <= v[i][j] && v[i][j] <= 'Z') v[i][j] += 'a' - 'A';
+            if (w.empty()) continue;
+            vector<string> u(v.begin() + 2, v.end());
+            swap(w, u);
+            u.clear();
+            u.push_back("new");
+            u.push_back(p = "intr_" + to_string(npm++));
+            create(u);
+            swap(p, w[1]);
+            if (v[1] == "ft") finite(w);
+            if (v[1] == "ln") linear(w);
+            if (v[1] == "rd") radial(w);
+            if (v[1] == "ms") other(w);
+            pl.push_back("((" + rs(mpi[w[1]], 0) + " - " + rs(mpi[p], 0) + ")^2 + (" + rs(mpi[w[1]], 1) + " - " + rs(mpi[p], 1) + ")^2) * w(" + to_string(nfc++) + ") - 1");
         }
+        if (v[0] == "qr") {
+            if (v[1] == "raw") {
+                s = "";
+                for (i = 2; i < v.size(); ++i) s += v[i];
+                query(s);
+            } else {
+                for (i = 2; i < 3; ++i) for (j = 0; j < v[i].size(); ++j) if ('A' <= v[i][j] && v[i][j] <= 'Z') v[i][j] += 'a' - 'A';
+                result(w);
+            }
+            return 0; ////!
+        }
+        if (v[0] == "end") break;
         //cout << "?" << pl.size() << endl;
         //for (i = 0; i < pl.size(); ++i) cout << pl[i] << endl;
     }
+    gen();
     return 0;
 }
