@@ -7,6 +7,7 @@ using namespace std;
 2   LN      LINE LOCUS CONSTRAINT
 3   RD      CIRCLE/RADIUS LOCUS CONSTRAINT
 4   MS      MISC.
+5   QR      QUERY
 */
 
 /*  0 - NEW POINT
@@ -90,7 +91,7 @@ struct rat{ //rational
     string str() {return q != 1 ? (to_string(p) + "/" + to_string(q)) : to_string(p);}
 };
 
-int nfc, ori, axi; //number of coordinates, (0, 0) point, (x, 0) point
+int nfc, ori = -1, axi = -1; //number of coordinates, (0, 0) point, (x, 0) point
 set<char> apn; //alphanumeric characters
 vector<string> v; //vector
 vector<int> pv; //priority vector
@@ -293,14 +294,13 @@ void other(vector<string> f) {
     int r[2], i;
     if (f[0] == "neq") {
         for (i = 0; i < 2; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
-        pl.push_back("((" + rs(r[1], 0) + " - " + rs(r[0], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[0], 1) + ")^2) * z(" + to_string(nfc++) + ") - 1");
+        pl.push_back("((" + rs(r[1], 0) + " - " + rs(r[0], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[0], 1) + ")^2) * w(" + to_string(nfc++) + ") - 1");
     }
     if (f[0] == "ori") {if (mpi.find(f[1]) == mpi.end()) {cout << "Invalid" << endl; return;} ori = mpi[f[1]];}
     if (f[0] == "axi") {if (mpi.find(f[1]) == mpi.end()) {cout << "Invalid" << endl; return;} axi = mpi[f[1]];}
 }
 
 /*
-
 */
 
 deque<int> dq; //deque
@@ -487,66 +487,76 @@ string crt(int i) {
     if (ty[i] == 0 || ty[i] == 3) return "(" + crt(ds[i].first) + zp[dt[i]] + crt(ds[i].second) + ")";
 }
 
+void eqi() {
+    if (!cnd(0)) syr();
+    ty.push_back(1);
+    dt.push_back(5);
+    ds.push_back(make_pair(-1, -1));
+    dq.push_back(ty.size() - 1);
+}
+
+void boi() {
+    inr(0);
+    ty.push_back(6);
+    dt.push_back(0);
+    ds.push_back(make_pair(-1, -1));
+    dq.push_back(ty.size() - 1);
+}
+
+void bci() {
+    if (!cnd(0)) syr();
+    if (dq.size() < 2 || ty[dq[dq.size() - 2]] != 6) syr();
+    int x = dq.back(), i;
+    for (i = 0; i < 2; ++i) dq.pop_back();
+    dq.push_back(x);
+    ty.push_back(7);
+    dt.push_back(0);
+    ds.push_back(make_pair(-1, -1));
+}
+
+void nmi(char c) {
+    if (inr(1)) {dt.back() *= 10; dt.back() += c - '0';}
+    else {
+        ty.push_back(4);
+        dt.push_back(c - '0');
+        ds.push_back(make_pair(-1, -1));
+        dq.push_back(ty.size() - 1);
+    }
+}
+
+void opi(char c) {
+    int cp[5] = {1, 1, 2, 2, 4}; //condensation priority
+    if (cnd(cp[om[c]])) {
+        ty.push_back(2);
+        dt.push_back(om[c]);
+        ds.push_back(make_pair(-1, -1));
+        dq.push_back(ty.size() - 1);
+    } else if (c == '-') {
+        ty.push_back(4);
+        dt.push_back(-1);
+        ds.push_back(make_pair(-1, -1));
+        dq.push_back(ty.size() - 1);
+        ty.push_back(2);
+        dt.push_back(2);
+        ds.push_back(make_pair(-1, -1));
+        dq.push_back(ty.size() - 1);
+    } else syr();
+}
+
 void query(string s) {
     int N, f, x, i, j;
     char zp[5] = {'+', '-', '*', '/', '^'}, zq[9] = {'a', 'b', 'c', 'A', 'B', 'C', 's', 'r', 'S'}; //operator-to-integer, term-to-integer
-    int cp[5] = {1, 1, 2, 2, 4}; //condensation priority
     for (i = 0; i < 5; ++i) om[zp[i]] = i;
     ty.push_back(4);
     dt.push_back(1);
     ds.push_back(make_pair(-1, -1));
     N = s.size();
     for (i = 0; i < N; ++i) {
-        if (s[i] == '=') {
-            if (!cnd(0)) syr();
-            ty.push_back(1);
-            dt.push_back(5);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-        }
-        if (s[i] == '(') {
-            inr(0);
-            ty.push_back(6);
-            dt.push_back(0);
-            ds.push_back(make_pair(-1, -1));
-            dq.push_back(ty.size() - 1);
-        }
-        if (s[i] == ')') {
-            if (!cnd(0)) syr();
-            if (dq.size() < 2 || ty[dq[dq.size() - 2]] != 6) syr();
-            x = dq.back();
-            for (j = 0; j < 2; ++j) dq.pop_back();
-            dq.push_back(x);
-            ty.push_back(7);
-            dt.push_back(0);
-            ds.push_back(make_pair(-1, -1));
-        }
-        if ('0' <= s[i] && s[i] <= '9') {
-            if (inr(1)) {dt.back() *= 10; dt.back() += s[i] - '0';}
-            else {
-                ty.push_back(4);
-                dt.push_back(s[i] - '0');
-                ds.push_back(make_pair(-1, -1));
-                dq.push_back(ty.size() - 1);
-            }
-        }
-        if (om.find(s[i]) != om.end()) {
-            if (cnd(cp[om[s[i]]])) {
-                ty.push_back(2);
-                dt.push_back(om[s[i]]);
-                ds.push_back(make_pair(-1, -1));
-                dq.push_back(ty.size() - 1);
-            } else if (s[i] == '-') {
-                ty.push_back(4);
-                dt.push_back(-1);
-                ds.push_back(make_pair(-1, -1));
-                dq.push_back(ty.size() - 1);
-                ty.push_back(2);
-                dt.push_back(2);
-                ds.push_back(make_pair(-1, -1));
-                dq.push_back(ty.size() - 1);
-            } else syr();
-        }
+        if (s[i] == '=') eqi();
+        if (s[i] == '(') boi();
+        if (s[i] == ')') bci();
+        if ('0' <= s[i] && s[i] <= '9') nmi(s[i]);
+        if (om.find(s[i]) != om.end()) opi(s[i]);
         if (i + 1 < N && s[i] == 'x' && s[i + 1] == '(') {
             string a = "";
             for (i += 2; i < N && s[i] != ')'; ++i) a += s[i];
@@ -574,7 +584,92 @@ void query(string s) {
                 else b += s[i];
             }
             if (i == N) syr();
-            ////xy
+            boi();
+            boi();
+
+
+            inr(0); //x0
+            ty.push_back(5);
+            dt.push_back(mpi[a] * 2);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            ty.push_back(2); //-
+            dt.push_back(om['-']);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            inr(0); //x1
+            ty.push_back(5);
+            dt.push_back(mpi[b] * 2);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            if (!cnd(0)) syr(); //)
+            if (dq.size() < 2 || ty[dq[dq.size() - 2]] != 6) syr();
+            x = dq.back();
+            for (j = 0; j < 2; ++j) dq.pop_back();
+            dq.push_back(x);
+            ty.push_back(7);
+            dt.push_back(0);
+            ds.push_back(make_pair(-1, -1));
+
+            ty.push_back(2); //^
+            dt.push_back(om['^']);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            ty.push_back(4); //2
+            dt.push_back(s[i] - '0');
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            ty.push_back(2); //+
+            dt.push_back(om['+']);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            inr(0); //(
+            ty.push_back(6);
+            dt.push_back(0);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            inr(0); //x0
+            ty.push_back(5);
+            dt.push_back(mpi[a] * 2);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            ty.push_back(2); //-
+            dt.push_back(om['-']);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            inr(0); //x1
+            ty.push_back(5);
+            dt.push_back(mpi[b] * 2);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            if (!cnd(0)) syr(); //)
+            if (dq.size() < 2 || ty[dq[dq.size() - 2]] != 6) syr();
+            x = dq.back();
+            for (j = 0; j < 2; ++j) dq.pop_back();
+            dq.push_back(x);
+            ty.push_back(7);
+            dt.push_back(0);
+            ds.push_back(make_pair(-1, -1));
+
+            ty.push_back(2); //^
+            dt.push_back(om['^']);
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
+
+            ty.push_back(4); //2
+            dt.push_back(s[i] - '0');
+            ds.push_back(make_pair(-1, -1));
+            dq.push_back(ty.size() - 1);
         }
     }
     cnd(0);
@@ -591,31 +686,22 @@ void query(string s) {
     cout << crt(dq[0]) << endl;
     cout << endl;*/
     cmp(dq[0]);
-    cout << "ring r = 0, (s, ";
-
-    //////
-
-    while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
-    cout << "r, a, b, c, S, A, B, C, v, w, x, y, i, j, k), dp;" << endl;
+    if (ori < 0 && !pcd.empty()) ori = 0;
+    if (axi < 0 && pcd.size() > 1) axi = 1;
+    if (ori > -1) {pl.push_back(rs(ori, 0)); pl.push_back(rs(ori, 1));}
+    if (axi > -1) pl.push_back(rs(axi, 1));
+    cout << "ring r = 0, (";
+    for (i = 0; i < nfc; ++i) cout << "w(" + to_string(i) + ")" + (i < nfc - 1 || !uf.empty() ? ", " : "");
+    while (!uf.empty()) {cout << uf.top().second + (uf.size() > 1 ? ", " : ""); uf.pop();}
+    cout << "), dp;" << endl;
     cout << endl;
-    cout << "poly t0 = a^2-((i-j)^2+k^2);" << endl;
-    cout << "poly t1 = b^2-(j^2+k^2);" << endl;
-    cout << "poly t2 = c^2-i^2;" << endl;
-    cout << "poly t3 = s-(a+b+c)/2;" << endl;
-    cout << "poly t4 = S^2-(ik/2)^2;" << endl;
-    cout << "poly t5 = 4rS-abc;" << endl;
-    cout << "poly t6 = 2rA-a;" << endl;
-    cout << "poly t7 = 2rB-b;" << endl;
-    cout << "poly t8 = 2rC-c;" << endl;
-    cout << "poly c0 = a-w^2;" << endl;
-    cout << "poly c1 = b-x^2;" << endl;
-    cout << "poly c2 = c-y^2;" << endl;
-    cout << "poly c3 = S-v^2;" << endl;
-    for (i = pl.size() - 1; i; --i) cout << "poly p" + to_string(pl.size() - i - 1) + " = " + pl[i] << ";" << endl;
-    cout << "poly rs = " + pl[0] + ";" << endl;
+    for (i = 0; i < pl.size(); ++i) cout << "poly p" + to_string(i) + " = " + pl[i] << ";" << endl;
+    for (i = ps.size() - 1; i; --i) cout << "poly q" + to_string(ps.size() - i - 1) + " = " + ps[i] << ";" << endl;
+    cout << "poly rs = " + ps[0] + ";" << endl;
     cout << endl;
-    cout << "ideal I = t0, t1, t2, t3, t4, t5, t6, t7, t8, c0, c1, c2, c3";
-    for (i = 0; i < pl.size() - 1; ++i) cout << ", p" + to_string(i);
+    cout << "ideal I = ";
+    for (i = 0; i < pl.size(); ++i) cout << "p" + to_string(i) + (i < pl.size() - 2 || !ps.empty() ? ", " : "");
+    for (i = 0; i < ps.size() - 1; ++i) cout << "q" + to_string(i) + (i < ps.size() - 2 ? ", " : "");
     cout << ";" << endl;
     cout << "I = groebner(I);" << endl;
     cout << "reduce(rs, I);" << endl;
@@ -623,6 +709,7 @@ void query(string s) {
 
 int main() {
     freopen("in.txt", "r", stdin);
+    freopen("out.txt", "w", stdout);
     ios_base::sync_with_stdio(0);
     string s;
     int N, i, j;
@@ -634,7 +721,7 @@ int main() {
         v.clear();
         v.push_back("");
         for (i = 0; i < s.size(); ++i) {
-            if (apn.find(s[i]) == apn.end()) {if (v.back() != "") v.push_back("");}
+            if (s[i] == ' ') {if (v.back() != "") v.push_back("");}
             else v.back() += s[i];
         }
         if (v.back() == "") v.pop_back();
@@ -651,7 +738,8 @@ int main() {
             query(s);
             return 0;
         }
-        for (i = 0; i < pl.size(); ++i) cout << pl[i] << endl;
+        //cout << "?" << pl.size() << endl;
+        //for (i = 0; i < pl.size(); ++i) cout << pl[i] << endl;
     }
     return 0;
 }
