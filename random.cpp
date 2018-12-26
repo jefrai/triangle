@@ -47,7 +47,7 @@ using namespace std;
 */
 
 /*  4 - OTHER
-0   EQL     EQUAL POINTS (1)
+0   EQ     EQUAL POINTS (1)
 1   NEQ     NONEQUAL POINTS (1)
 2   ORI     POINT AS ORIGIN (0)
 3   AXI     POINT ON X-AXIS (0)
@@ -294,9 +294,10 @@ void radial(vector<string> f) {
 
 void other(vector<string> f) {
     int r[2], i;
-    if (f[0] == "eql") {
+    if (f[0] == "eq") {
         for (i = 0; i < 2; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
-        pl.push_back("(" + rs(r[1], 0) + " - " + rs(r[0], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[0], 1) + ")^2");
+        pl.push_back(rs(r[1], 0) + " - " + rs(r[0], 0));
+        pl.push_back(rs(r[1], 1) + " - " + rs(r[0], 1));
     }
     if (f[0] == "neq") {
         for (i = 0; i < 2; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
@@ -426,36 +427,7 @@ void cmp(int i) { //compile tree into polynomials
     string l, r;
     l = (ty[dl] < 4 || 5 < ty[dl]) ? ("z(" + to_string(dl) + ")") : (ty[dl] == 4 ? rv[dl].str() : rs(dt[dl] / 2, dt[dl] % 2));
     r = (ty[dr] < 4 || 5 < ty[dr]) ? ("z(" + to_string(dr) + ")") : (ty[dr] == 4 ? rv[dr].str() : rs(dt[dr] / 2, dt[dr] % 2));
-    if (ty[i] == 0) {
-        if (dt[i] == 5) ps.push_front(l + "-" + r);
-        if (dt[i] == 6) {
-            uf.push(make_pair(50, "l"));
-            ps.push_front(l+"-"+r+"+l^2");
-        }
-        if (dt[i] == 7) {
-            uf.push(make_pair(50, "l"));
-            ps.push_front(l+"-"+r+"-l^2");
-        }
-        if (dt[i] == 8) {
-            uf.push(make_pair(50, "l"));
-            uf.push(make_pair(50, "m"));
-            ps.push_front("l*m-1");
-            ps.push_front(l+"-"+r+"+l^2");
-        }
-        if (dt[i] == 9) {
-            uf.push(make_pair(50, "l"));
-            uf.push(make_pair(50, "m"));
-            ps.push_front("l*m-1");
-            ps.push_front(l+"-"+r+"-l^2");
-        }
-        if (dt[i] == 10) {
-            uf.push(make_pair(50, "l"));
-            uf.push(make_pair(50, "m"));
-            ps.push_front("l*m-1");
-            ps.push_front(l+"-"+r+"-l");
-        }
-        return;
-    }
+    if (ty[i] == 0) rp.push_back(l + "-" + r);
     if (dt[i] == 0) {
         uf.push(make_pair(100, "z(" + to_string(i) + ")"));
         ps.push_back("z(" + to_string(i) + ")-(" + l + "+" + r + ")");
@@ -623,41 +595,37 @@ void query(string s) {
     cout << crt(dq[0]) << endl;
     cout << endl;*/
     cmp(dq[0]);
+}
+
+void gen() {
+    int i;
     if (ori < 0 && !pcd.empty()) ori = 0;
     if (axi < 0 && pcd.size() > 1) axi = 1;
-    if (ori > -1) {pl.push_back(rs(ori, 0)); pl.push_back(rs(ori, 1));}
-    if (axi > -1) pl.push_back(rs(axi, 1));
+    if (axi > -1) pl.push_front(rs(axi, 1));
+    if (ori > -1) {pl.push_front(rs(ori, 1)); pl.push_front(rs(ori, 0));}
     cout << "ring r = 0, (";
     for (i = 0; i < nfc; ++i) cout << "w(" + to_string(i) + ")" + (i < nfc - 1 || !uf.empty() ? ", " : "");
     while (!uf.empty()) {cout << uf.top().second + (uf.size() > 1 ? ", " : ""); uf.pop();}
     cout << "), dp;" << endl;
     cout << endl;
     for (i = 0; i < pl.size(); ++i) cout << "poly p" + to_string(i) + " = " + pl[i] << ";" << endl;
-    for (i = ps.size() - 1; i; --i) cout << "poly q" + to_string(ps.size() - i - 1) + " = " + ps[i] << ";" << endl;
-    cout << "poly rs = " + ps[0] + ";" << endl;
+    for (i = 0; i < ps.size(); ++i) cout << "poly q" + to_string(i) + " = " + ps[i] << ";" << endl;
+    cout << endl;
+    for (i = 0; i < rp.size(); ++i) cout << "poly rs" + to_string(i) + " = " + rp[i] << ";" << endl;
     cout << endl;
     cout << "ideal I = ";
-    for (i = 0; i < pl.size(); ++i) cout << "p" + to_string(i) + (i < pl.size() - 2 || !ps.empty() ? ", " : "");
-    for (i = 0; i < ps.size() - 1; ++i) cout << "q" + to_string(i) + (i < ps.size() - 2 ? ", " : "");
+    for (i = 0; i < pl.size(); ++i) cout << "p" + to_string(i) + (i < pl.size() - 1 || !ps.empty() ? ", " : "");
+    for (i = 0; i < ps.size(); ++i) cout << "q" + to_string(i) + (i < ps.size() - 1 ? ", " : "");
     cout << ";" << endl;
     cout << "I = groebner(I);" << endl;
-    cout << "reduce(rs, I);" << endl;
-}
-
-void result(vector<string> f) {
-
-}
-
-void gen() {
-
+    for (i = 0; i < rp.size(); ++i) cout << "reduce(rs" + to_string(i) + ", I);" << endl;
 }
 
 /*  TODO
     MIRRORED POINTS
     NEGATED STATEMENTS - CHECK
-    MULTIPLE QUERIES
-    RAW CONSTRAINTS
-    FORMATTED RESULTS
+    FORMATTED RESULTS - CHECK
+    RAW CONSTRAINTS?
 
     VERIFY
 
@@ -674,17 +642,63 @@ void gen() {
     FT ILL F A B C D
     QR RAW ds(E,F)=0
 
-    PT NEW A
-    PT NEW B
-    MS EQ A B
-    QR RAW ds(A,B)=0
 */
+
+bool interpret(vector<string> v) {
+    string p;
+    int i, j;
+    vector<string> w(v.begin() + 1, v.end());
+    if (v[0] == "pt") create(w);
+    if (v[0] == "ft") finite(w);
+    if (v[0] == "ln") linear(w);
+    if (v[0] == "rd") radial(w);
+    if (v[0] == "ms") other(w);
+    if (v[0] == "neg") {
+        for (i = 1; i < 2; ++i) for (j = 0; j < w[i].size(); ++j) if ('A' <= w[i][j] && w[i][j] <= 'Z') w[i][j] += 'a' - 'A';
+        vector<string> u(v.begin() + 2, v.end());
+        if (v[1] == "ft") {
+            swap(w, u);
+            u.clear();
+            u.push_back("new");
+            u.push_back(p = "intr_" + to_string(npm++));
+            create(u);
+            swap(p, w[1]);
+            finite(w);
+            pl.push_back("((" + rs(mpi[w[1]], 0) + " - " + rs(mpi[p], 0) + ")^2 + (" + rs(mpi[w[1]], 1) + " - " + rs(mpi[p], 1) + ")^2) * w(" + to_string(nfc++) + ") - 1");
+        } else {
+            if (v[1] == "ln") linear(w);
+            if (v[1] == "rd") radial(w);
+            pl.back() = "(" + pl.back() + ") * w(" + to_string(nfc++) + ") - 1";
+        }
+    }
+    if (v[0] == "qr") {
+        if (v[1] == "raw") {
+            p = "";
+            for (i = 2; i < v.size(); ++i) p += v[i];
+            query(p);
+        } else {
+            for (i = 1; i < 2; ++i) for (j = 0; j < w[i].size(); ++j) if ('A' <= w[i][j] && w[i][j] <= 'Z') w[i][j] += 'a' - 'A';
+            interpret(w);
+            if (w[0] == "ms" && w[1] == "eq") {
+                rp.push_back(pl[pl.size() - 2]);
+                rp.push_back(pl.back());
+                pl.pop_back();
+                pl.pop_back();
+            } else {
+                rp.push_back(pl.back());
+                pl.pop_back();
+            }
+        }
+    }
+    if (v[0] == "end") return 1;
+    return 0;
+}
 
 int main() {
     freopen("in.txt", "r", stdin);
     freopen("out.txt", "w", stdout);
     ios_base::sync_with_stdio(0);
-    string s, p;
+    string s;
     int N, i, j;
     for (i = 0; i < 10; ++i) apn.insert('0' + i);
     for (i = 0; i < 26; ++i) apn.insert('a' + i);
@@ -699,42 +713,7 @@ int main() {
         if (v.back() == "") v.pop_back();
         if (v.empty()) continue;
         for (i = 0; i < 2; ++i) for (j = 0; j < v[i].size(); ++j) if ('A' <= v[i][j] && v[i][j] <= 'Z') v[i][j] += 'a' - 'A';
-        vector<string> w(v.begin() + 1, v.end());
-        if (v[0] == "pt") create(w);
-        if (v[0] == "ft") finite(w);
-        if (v[0] == "ln") linear(w);
-        if (v[0] == "rd") radial(w);
-        if (v[0] == "ms") other(w);
-        if (v[0] == "neg") {
-            for (i = 2; i < 3; ++i) for (j = 0; j < v[i].size(); ++j) if ('A' <= v[i][j] && v[i][j] <= 'Z') v[i][j] += 'a' - 'A';
-            if (w.empty()) continue;
-            vector<string> u(v.begin() + 2, v.end());
-            swap(w, u);
-            u.clear();
-            u.push_back("new");
-            u.push_back(p = "intr_" + to_string(npm++));
-            create(u);
-            swap(p, w[1]);
-            if (v[1] == "ft") finite(w);
-            if (v[1] == "ln") linear(w);
-            if (v[1] == "rd") radial(w);
-            if (v[1] == "ms") other(w);
-            pl.push_back("((" + rs(mpi[w[1]], 0) + " - " + rs(mpi[p], 0) + ")^2 + (" + rs(mpi[w[1]], 1) + " - " + rs(mpi[p], 1) + ")^2) * w(" + to_string(nfc++) + ") - 1");
-        }
-        if (v[0] == "qr") {
-            if (v[1] == "raw") {
-                s = "";
-                for (i = 2; i < v.size(); ++i) s += v[i];
-                query(s);
-            } else {
-                for (i = 2; i < 3; ++i) for (j = 0; j < v[i].size(); ++j) if ('A' <= v[i][j] && v[i][j] <= 'Z') v[i][j] += 'a' - 'A';
-                result(w);
-            }
-            return 0; ////!
-        }
-        if (v[0] == "end") break;
-        //cout << "?" << pl.size() << endl;
-        //for (i = 0; i < pl.size(); ++i) cout << pl[i] << endl;
+        if (interpret(v)) break;
     }
     gen();
     return 0;
