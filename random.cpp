@@ -24,7 +24,7 @@ using namespace std;
 4   ICI     INTERSECTION CIRCLE-CIRCLE IMMEDIATE (2, 1, 1I)
 5   ICD     INTERSECTION CIRCLE-CIRCLE DIIMMEIDATE (1, 1I, 1, 1I)
 6   MID     MIDPOINT (2)
-7   PRJ     PROJECTION ONTO LINE (3)
+7   PROJ    PROJECTION ONTO LINE (1, 2)
 8   MIR     MIRROR OVER LINE (1, 2)
 9   TAN     TANGENT (3) SOURCE-CENTRE-RADIUS
 10  TANI    TANGENT IMMEDIATE (2, 1I)
@@ -188,16 +188,19 @@ void finite(vector<string> f) {
         pl.push_back("2 * " + rs(r[0], 0) + " - " + rs(r[1], 0) + " - " + rs(r[2], 0));
         pl.push_back("2 * " + rs(r[0], 1) + " - " + rs(r[1], 1) + " - " + rs(r[2], 1));
     }
-    if (f[0] == "prj") {
+    if (f[0] == "proj") {
         for (i = 0; i < 4; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
         pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[2], 0) + ") * ((" + rs(r[3], 0) + " - " + rs(r[2], 0) + ")^2 + (" + rs(r[3], 1) + " - " + rs(r[2], 1) + ")^2) - ");
         pl.back() += "(" + rs(r[3], 0) + " - " + rs(r[2], 0) + ") * ((" + rs(r[1], 0) + " - " + rs(r[2], 0) + ") * (" + rs(r[3], 0) + " - " + rs(r[2], 0) + ") + (" + rs(r[1], 1) + " - " + rs(r[2], 1) + ") * (" + rs(r[3], 1) + " - " + rs(r[2], 1) + "))";
         pl.push_back("(" + rs(r[0], 1) + " - " + rs(r[2], 1) + ") * ((" + rs(r[3], 1) + " - " + rs(r[2], 1) + ")^2 + (" + rs(r[3], 0) + " - " + rs(r[2], 0) + ")^2) - ");
         pl.back() += "(" + rs(r[3], 1) + " - " + rs(r[2], 1) + ") * ((" + rs(r[1], 1) + " - " + rs(r[2], 1) + ") * (" + rs(r[3], 1) + " - " + rs(r[2], 1) + ") + (" + rs(r[1], 0) + " - " + rs(r[2], 0) + ") * (" + rs(r[3], 0) + " - " + rs(r[2], 0) + "))";
     }
-    if (f[0] == "mir") { //??
-        for (i = 0; i < 3; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
-
+    if (f[0] == "mir") {
+        for (i = 0; i < 4; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
+        pl.push_back("((" + rs(r[0], 0) + " + " + rs(r[1], 0) + ") / 2 - " + rs(r[2], 0) + ") * ((" + rs(r[3], 0) + " - " + rs(r[2], 0) + ")^2 + (" + rs(r[3], 1) + " - " + rs(r[2], 1) + ")^2) - ");
+        pl.back() += "(" + rs(r[3], 0) + " - " + rs(r[2], 0) + ") * ((" + rs(r[1], 0) + " - " + rs(r[2], 0) + ") * (" + rs(r[3], 0) + " - " + rs(r[2], 0) + ") + (" + rs(r[1], 1) + " - " + rs(r[2], 1) + ") * (" + rs(r[3], 1) + " - " + rs(r[2], 1) + "))";
+        pl.push_back("((" + rs(r[0], 1) + " + " + rs(r[1], 1) + ") / 2 - " + rs(r[2], 1) + ") * ((" + rs(r[3], 1) + " - " + rs(r[2], 1) + ")^2 + (" + rs(r[3], 0) + " - " + rs(r[2], 0) + ")^2) - ");
+        pl.back() += "(" + rs(r[3], 1) + " - " + rs(r[2], 1) + ") * ((" + rs(r[1], 1) + " - " + rs(r[2], 1) + ") * (" + rs(r[3], 1) + " - " + rs(r[2], 1) + ") + (" + rs(r[1], 0) + " - " + rs(r[2], 0) + ") * (" + rs(r[3], 0) + " - " + rs(r[2], 0) + "))";
     }
     if (f[0] == "tan") {
         for (i = 0; i < 4; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
@@ -595,12 +598,13 @@ void query(string s) {
     cout << crt(dq[0]) << endl;
     cout << endl;*/
     cmp(dq[0]);
+    dq.clear();
 }
 
 void gen() {
     int i;
-    if (ori < 0 && !pcd.empty()) ori = 0;
-    if (axi < 0 && pcd.size() > 1) axi = 1;
+    //if (ori < 0 && !pcd.empty()) ori = 0;
+    //if (axi < 0 && pcd.size() > 1) axi = 1;
     if (axi > -1) pl.push_front(rs(axi, 1));
     if (ori > -1) {pl.push_front(rs(ori, 1)); pl.push_front(rs(ori, 0));}
     cout << "ring r = 0, (";
@@ -622,10 +626,8 @@ void gen() {
 }
 
 /*  TODO
-    MIRRORED POINTS
-    NEGATED STATEMENTS - CHECK
-    FORMATTED RESULTS - CHECK
-    RAW CONSTRAINTS?
+
+    ORIGIN/AXIS CONSTRAINT CHOICE
 
     VERIFY
 
@@ -668,8 +670,26 @@ bool interpret(vector<string> v) {
         } else {
             if (v[1] == "ln") linear(w);
             if (v[1] == "rd") radial(w);
+            if (v[1] == "raw") {
+                p = "";
+                for (i = 2; i < v.size(); ++i) p += v[i];
+                swap(pl, ps);
+                query(p);
+                swap(pl, ps);
+                pl.push_back(rp.back());
+                rp.pop_back();
+            }
             pl.back() = "(" + pl.back() + ") * w(" + to_string(nfc++) + ") - 1";
         }
+    }
+    if (v[0] == "raw") {
+        p = "";
+        for (i = 1; i < v.size(); ++i) p += v[i];
+        swap(pl, ps);
+        query(p);
+        swap(pl, ps);
+        pl.push_back(rp.back());
+        rp.pop_back();
     }
     if (v[0] == "qr") {
         if (v[1] == "raw") {
@@ -712,7 +732,7 @@ int main() {
         }
         if (v.back() == "") v.pop_back();
         if (v.empty()) continue;
-        for (i = 0; i < 2; ++i) for (j = 0; j < v[i].size(); ++j) if ('A' <= v[i][j] && v[i][j] <= 'Z') v[i][j] += 'a' - 'A';
+        for (i = 0; i < 2 && v[0] != "raw"; ++i) for (j = 0; j < v[i].size(); ++j) if ('A' <= v[i][j] && v[i][j] <= 'Z') v[i][j] += 'a' - 'A';
         if (interpret(v)) break;
     }
     gen();
