@@ -28,7 +28,7 @@ using namespace std;
 8   MIR     MIRROR OVER LINE (1, 2)
 9   TAN     TANGENT (3) SOURCE-CENTRE-RADIUS
 10  TANI    TANGENT IMMEDIATE (2, 1I)
-?   CENTERS
+?   (CENTERS)
 */
 
 /*  2 - LINE LOCUS CONSTRAINT
@@ -41,7 +41,7 @@ using namespace std;
 */
 
 /*  3 - CIRCLE/RADIUS LOCUS CONSTRAINT
-0   RAD     RADIUS (1, 2) CENTRE-RADIUS
+0   RAD     RADIUS (1, 2) CENTRE, RADIUS LENGTH
 1   RADI    RADIUS IMMEDIATE (1, 1I)
 2   CONC    CONCYCLIC (3)
 */
@@ -269,7 +269,7 @@ void radial(vector<string> f) {
     int r[5], i, j, k;
     if (f[0] == "rad") {
         for (i = 0; i < 3; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
-        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[1], 1) + ")^2 - (" + rs(r[2], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ")^2");
+        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[1], 1) + ")^2 - (" + rs(r[2], 0) + " - " + rs(r[1], 0) + ")^2 - (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ")^2");
     }
     if (f[0] == "radi") {
         for (i = 0; i < 2; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
@@ -285,13 +285,13 @@ void radial(vector<string> f) {
         pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[1], 1) + ")^2 - (" + cf.str() + ")^2");
     }
     if (f[0] == "conc") {
-        for (i = 0; i < 5; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
-        r[5] = pcd.size();
+        for (i = 0; i < 4; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
+        r[4] = pcd.size();
         pcd.push_back(make_pair(nfc, nfc + 1));
         nfc += 2;
-        pl.push_back("(" + rs(r[2], 0) + " - " + rs(r[5], 0) + ")^2 + (" + rs(r[2], 1) + " - " + rs(r[5], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[5], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[5], 1) + ")^2");
-        pl.push_back("(" + rs(r[3], 0) + " - " + rs(r[5], 0) + ")^2 + (" + rs(r[3], 1) + " - " + rs(r[5], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[5], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[5], 1) + ")^2");
-        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[5], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[5], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[5], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[5], 1) + ")^2");
+        pl.push_back("(" + rs(r[2], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[2], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
+        pl.push_back("(" + rs(r[3], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[3], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
+        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
     }
 }
 
@@ -608,8 +608,8 @@ void gen() {
     if (axi > -1) pl.push_front(rs(axi, 1));
     if (ori > -1) {pl.push_front(rs(ori, 1)); pl.push_front(rs(ori, 0));}
     cout << "ring r = 0, (";
-    for (i = 0; i < nfc; ++i) cout << "w(" + to_string(i) + ")" + (i < nfc - 1 || !uf.empty() ? ", " : "");
-    while (!uf.empty()) {cout << uf.top().second + (uf.size() > 1 ? ", " : ""); uf.pop();}
+    while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
+    for (i = 0; i < nfc; ++i) cout << "w(" + to_string(i) + ")" + (i < nfc - 1 ? ", " : "");
     cout << "), dp;" << endl;
     cout << endl;
     for (i = 0; i < pl.size(); ++i) cout << "poly p" + to_string(i) + " = " + pl[i] << ";" << endl;
@@ -626,8 +626,6 @@ void gen() {
 }
 
 /*  TODO
-
-    ORIGIN/AXIS CONSTRAINT CHOICE
 
     VERIFY
 
@@ -724,6 +722,7 @@ int main() {
     for (i = 0; i < 26; ++i) apn.insert('a' + i);
     for (i = 0; i < 26; ++i) apn.insert('A' + i);
     while (getline(cin, s)) {
+        if (s.size() > 1 && s[0] == '/' && s[1] == '/') continue;
         v.clear();
         v.push_back("");
         for (i = 0; i < s.size(); ++i) {
