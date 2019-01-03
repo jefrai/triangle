@@ -609,7 +609,7 @@ void gen() {
     if (ori > -1) {pl.push_front(rs(ori, 1)); pl.push_front(rs(ori, 0));}
     cout << "ring r = 0, (";
     while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
-    for (i = 0; i < nfc; ++i) cout << "w(" + to_string(i) + ")" + (i < nfc - 1 ? ", " : "");
+    for (i = 0; i < nfc; ++i) cout << "w(" + to_string(nfc - i - 1) + ")" + (i < nfc - 1 ? ", " : "");
     cout << "), dp;" << endl;
     cout << endl;
     for (i = 0; i < pl.size(); ++i) cout << "poly p" + to_string(i) + " = " + pl[i] << ";" << endl;
@@ -626,9 +626,7 @@ void gen() {
 }
 
 /*  TODO
-
     VERIFY
-
     PT NEW A
     PT NEW B
     PT NEW C
@@ -641,7 +639,6 @@ void gen() {
     FT ILL E A B C D
     FT ILL F A B C D
     QR RAW ds(E,F)=0
-
 */
 
 bool interpret(vector<string> v) {
