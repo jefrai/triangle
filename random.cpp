@@ -607,6 +607,9 @@ void gen() {
     //if (axi < 0 && pcd.size() > 1) axi = 1;
     if (axi > -1) pl.push_front(rs(axi, 1));
     if (ori > -1) {pl.push_front(rs(ori, 1)); pl.push_front(rs(ori, 0));}
+    cout << "system(\"--ticks-per-sec\", 1000);" << endl;
+    cout << "int tm0 = timer;" << endl;
+    cout << endl;
     cout << "ring r = 0, (";
     while (!uf.empty()) {cout << uf.top().second + ", "; uf.pop();}
     for (i = 0; i < nfc; ++i) cout << "w(" + to_string(nfc - i - 1) + ")" + (i < nfc - 1 ? ", " : "");
@@ -623,6 +626,11 @@ void gen() {
     cout << ";" << endl;
     cout << "I = groebner(I);" << endl;
     for (i = 0; i < rp.size(); ++i) cout << "reduce(rs" + to_string(i) + ", I);" << endl;
+    cout << endl;
+    cout << "int tm1 = timer;" << endl;
+    cout << "tm0;" << endl;
+    cout << "tm1;" << endl;
+    cout << "tm1 - tm0;" << endl;
 }
 
 /*  TODO
