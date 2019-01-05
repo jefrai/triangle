@@ -289,9 +289,9 @@ void radial(vector<string> f) {
         r[4] = pcd.size();
         pcd.push_back(make_pair(nfc, nfc + 1));
         nfc += 2;
-        pl.push_back("(" + rs(r[2], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[2], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
-        pl.push_back("(" + rs(r[3], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[3], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
-        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
+        pl.push_back("(" + rs(r[2], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[2], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 - (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
+        pl.push_back("(" + rs(r[3], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[3], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 - (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
+        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[4], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[4], 1) + ")^2 - (" + rs(r[1], 0) + " - " + rs(r[4], 0) + ")^2 - (" + rs(r[1], 1) + " - " + rs(r[4], 1) + ")^2");
     }
 }
 
@@ -660,7 +660,7 @@ bool interpret(vector<string> v) {
     if (v[0] == "ms") other(w);
     if (v[0] == "neg") {
         for (i = 1; i < 2; ++i) for (j = 0; j < w[i].size(); ++j) if ('A' <= w[i][j] && w[i][j] <= 'Z') w[i][j] += 'a' - 'A';
-        vector<string> u(v.begin() + 2, v.end());
+        vector<string> u(w.begin() + 1, w.end());
         if (v[1] == "ft") {
             swap(w, u);
             u.clear();
@@ -671,8 +671,8 @@ bool interpret(vector<string> v) {
             finite(w);
             pl.push_back("((" + rs(mpi[w[1]], 0) + " - " + rs(mpi[p], 0) + ")^2 + (" + rs(mpi[w[1]], 1) + " - " + rs(mpi[p], 1) + ")^2) * w(" + to_string(nfc++) + ") - 1");
         } else {
-            if (v[1] == "ln") linear(w);
-            if (v[1] == "rd") radial(w);
+            if (v[1] == "ln") linear(u);
+            if (v[1] == "rd") radial(u);
             if (v[1] == "raw") {
                 p = "";
                 for (i = 2; i < v.size(); ++i) p += v[i];
