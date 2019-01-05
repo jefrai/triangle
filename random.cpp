@@ -432,23 +432,23 @@ void cmp(int i) { //compile tree into polynomials
     r = (ty[dr] < 4 || 5 < ty[dr]) ? ("z(" + to_string(dr) + ")") : (ty[dr] == 4 ? rv[dr].str() : rs(dt[dr] / 2, dt[dr] % 2));
     if (ty[i] == 0) rp.push_back(l + "-" + r);
     if (dt[i] == 0) {
-        uf.push(make_pair(100, "z(" + to_string(i) + ")"));
+        uf.push(make_pair(-i, "z(" + to_string(i) + ")"));
         ps.push_back("z(" + to_string(i) + ")-(" + l + "+" + r + ")");
     }
     if (dt[i] == 1) {
-        uf.push(make_pair(100, "z(" + to_string(i) + ")"));
+        uf.push(make_pair(-i, "z(" + to_string(i) + ")"));
         ps.push_back("z(" + to_string(i) + ")-(" + l + "-" + r + ")");
     }
     if (dt[i] == 2) {
-        uf.push(make_pair(100, "z(" + to_string(i) + ")"));
+        uf.push(make_pair(-i, "z(" + to_string(i) + ")"));
         ps.push_back("z(" + to_string(i) + ")-(" + l + "*" + r + ")");
     }
     if (dt[i] == 3) {
-        uf.push(make_pair(80, "z(" + to_string(i) + ")"));
+        uf.push(make_pair(-i, "z(" + to_string(i) + ")"));
         ps.push_back("z(" + to_string(i) + ")*" + r + "-" + l);
     }
     if (dt[i] == 4) {
-        uf.push(make_pair(0, "z(" + to_string(i) + ")"));
+        uf.push(make_pair(-i, "z(" + to_string(i) + ")"));
         if (rv[dr] > 0) {
             if (rv[dr].p == 1) ps.push_back("z(" + to_string(i) + ")^" + to_string(rv[dr].q) + "-" + l);
             else if (rv[dr].q == 1) ps.push_back("z(" + to_string(i) + ")-" + l + "^" + to_string(rv[dr].p));
