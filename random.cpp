@@ -132,7 +132,7 @@ void finite(vector<string> f) {
     if (f[0] == "ilc") {
         for (i = 0; i < 5; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
         pl.push_back("(" + rs(r[0], 1) + " - " + rs(r[1], 1) + ") * (" + rs(r[2], 0) + " - " + rs(r[1], 0) + ") - (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ") * (" + rs(r[0], 0) + " - " + rs(r[1], 0) + ")");
-        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[3], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[3], 1) + ")^2 - (" + rs(r[4], 0) + " - " + rs(r[3], 0) + ")^2 + (" + rs(r[4], 1) + " - " + rs(r[3], 1) + ")^2");
+        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[3], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[3], 1) + ")^2 - (" + rs(r[4], 0) + " - " + rs(r[3], 0) + ")^2 - (" + rs(r[4], 1) + " - " + rs(r[3], 1) + ")^2");
     }
     if (f[0] == "ili") {
         for (i = 0; i < 4; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
@@ -150,8 +150,8 @@ void finite(vector<string> f) {
     }
     if (f[0] == "icc") {
         for (i = 0; i < 5; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
-        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[1], 1) + ")^2 - (" + rs(r[2], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ")^2");
-        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[3], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[3], 1) + ")^2 - (" + rs(r[4], 0) + " - " + rs(r[3], 0) + ")^2 + (" + rs(r[4], 1) + " - " + rs(r[3], 1) + ")^2");
+        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[1], 1) + ")^2 - (" + rs(r[2], 0) + " - " + rs(r[1], 0) + ")^2 - (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ")^2");
+        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[3], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[3], 1) + ")^2 - (" + rs(r[4], 0) + " - " + rs(r[3], 0) + ")^2 - (" + rs(r[4], 1) + " - " + rs(r[3], 1) + ")^2");
     }
     if (f[0] == "ici") {
         for (i = 0; i < 4; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
@@ -164,7 +164,7 @@ void finite(vector<string> f) {
         }
         if (j) cf = rat(1) / cf;
         if (k) cf = -cf;
-        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[1], 1) + ")^2 - (" + rs(r[2], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ")^2");
+        pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[1], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[1], 1) + ")^2 - (" + rs(r[2], 0) + " - " + rs(r[1], 0) + ")^2 - (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ")^2");
         pl.push_back("(" + rs(r[0], 0) + " - " + rs(r[3], 0) + ")^2 + (" + rs(r[0], 1) + " - " + rs(r[3], 1) + ")^2 - (" + cf.str() + ")^2");
     }
     if (f[0] == "icd") {
