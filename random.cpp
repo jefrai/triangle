@@ -253,7 +253,7 @@ void linear(vector<string> f) {
     }
     if (f[0] == "pbis") {
         for (i = 0; i < 3; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
-        pl.push_back("(2 * " + rs(r[0], 1) + " - " + rs(r[1], 1) + " - " + rs(r[2], 1) + ") * (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ") + (2 * " + rs(r[0], 0) + " - " + rs(r[1], 0) + " - " + rs(r[2], 0) + ")(" + rs(r[2], 0) + " - " + rs(r[1], 0) + ")");
+        pl.push_back("(2 * " + rs(r[0], 1) + " - " + rs(r[1], 1) + " - " + rs(r[2], 1) + ") * (" + rs(r[2], 1) + " - " + rs(r[1], 1) + ") + (2 * " + rs(r[0], 0) + " - " + rs(r[1], 0) + " - " + rs(r[2], 0) + ") * (" + rs(r[2], 0) + " - " + rs(r[1], 0) + ")");
     }
     if (f[0] == "abis") { //POSSIBLE EXTERNAL BISECTOR
         for (i = 0; i < 4; ++i) {if (mpi.find(f[i + 1]) == mpi.end()) {cout << "Invalid" << endl; return;} r[i] = mpi[f[i + 1]];}
